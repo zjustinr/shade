@@ -20,7 +20,13 @@
     "smoke:map": "node scripts/smoke-map.mjs",
     "postbuild": "tsx scripts/check-service-worker.ts",
     "smoke:offline": "node scripts/smoke-offline.mjs",
-    "seed:corners": "tsx scripts/seed-corners.ts"
+    "seed:corners": "tsx scripts/seed-corners.ts",
+    "verify:routing": "tsx scripts/verify-routing.ts",
+    "build:network": "tsx scripts/build-network.ts",
+    "verify:network": "tsx scripts/verify-network.ts",
+    "build:exposure": "tsx scripts/build-exposure.ts",
+    "extract:destinations": "tsx scripts/extract-destinations.ts",
+    "smoke:routes": "node scripts/smoke-routes.mjs"
   },
   "dependencies": {
     "@turf/turf": "^7.4.0",

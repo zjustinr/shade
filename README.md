@@ -42,14 +42,22 @@ The shade layer is precomputed and committed. Rebuild it when the City
 publishes new data, or when you change the model:
 
 ```bash
-npm run extract:data     # pull trees + buildings from data.boston.gov, clip to Chinatown
-npm run build:shade      # precompute shadow geometry (~5 minutes)
+npm run extract:data          # pull trees + buildings from data.boston.gov, clip to Chinatown
+npm run build:shade           # precompute shadow geometry (~5 minutes)
+npm run build:network         # pull sidewalk centrelines, build the walking graph
+npm run build:exposure        # per-edge sun exposure per half-hour (needs the two above)
+npm run extract:destinations  # pharmacies, library, hospitals, housing, restaurants, parks
 ```
 
 `extract:data` writes `public/data/{trees,buildings}.geojson`.
 `build:shade` writes one file per half-hour per representative date under
 `public/data/shade/`, plus an `index.json` the app reads for its limitation
-figures. The City APIs are never called at request time.
+figures. `build:network` writes the routable pedestrian graph
+(`network.json`), built from the City's sidewalk-centreline layer — real
+sidewalks and crosswalks, not street centrelines, because the two sides of
+one street can differ by tens of degrees. `build:exposure` intersects every
+walkway edge with every shade slot so the route planner is a lookup, not a
+computation. The City APIs are never called at request time.
 
 ## Scripts
 
@@ -61,18 +69,25 @@ figures. The City APIs are never called at request time.
 | `npm run seed:sites` / `seed:corners` | Load fixtures (idempotent) |
 | `npm run extract:data` | Refresh the City data extracts |
 | `npm run build:shade` | Recompute the shade geometry |
+| `npm run build:network` | Rebuild the walking graph from City sidewalk data |
+| `npm run build:exposure` | Recompute per-edge sun exposure per time slot |
+| `npm run extract:destinations` | Refresh the walking-destinations layer |
 | `npm run verify:shade` | Assert the solar geometry against physics |
+| `npm run verify:routing` | Assert the route planner on a synthetic grid |
+| `npm run verify:network` | Assert the real graph: connected, covers the bbox, sane distances |
 | `npm run check:i18n` | Catalogs in sync + translation review status |
 | `npm run smoke:map` | Browser test: are shadows actually painted? |
 | `npm run smoke:offline` | Browser test: airplane-mode field capture |
+| `npm run smoke:routes` | Browser test: destinations + shaded route planner |
 | `npm run lint` | ESLint |
 
-The two smoke tests need a built app running:
+The browser smoke tests need a built app running:
 
 ```bash
 npm run build && npx next start -p 3555
 npm run smoke:map
 PORT=3555 npm run smoke:offline
+PORT=3555 npm run smoke:routes
 ```
 
 ## Things that will bite you
@@ -140,6 +155,17 @@ should trust the map:
   constants.
 - Negative and implausible temperature deltas are saved and flagged, never
   silently rejected. Anomalies are data.
+- The route planner runs entirely in the browser over precomputed data. No
+  geocoder or routing service is called — where somebody walks from and to
+  is user data, and §10 forbids sending it off-origin. Place search matches
+  against the locally-downloaded destinations list only.
+- The destinations layer is places to walk TO, so the planner can show which
+  way there is shaded. It records nothing about air conditioning, refuge
+  status or opening hours — that is the City's cooling map, which the app
+  links out to (§0). Keep it that way.
+- Where the source data has a real gap, the UI says so: BHA has no
+  development inside Chinatown itself, and the layer says that rather than
+  letting a near-empty layer imply the neighbourhood has no public housing.
 
 ## Deviations from the spec
 

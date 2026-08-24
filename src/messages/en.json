@@ -117,5 +117,48 @@
     "notFoundBody": "That page does not exist.",
     "backHome": "Back to the start",
     "loading": "Loading…"
+  },
+  "destinations": {
+    "title": "Places to walk to",
+    "note": "Everyday destinations, so you can see which way there is shaded. For indoor cooling centres, use the City's map.",
+    "bhaNote": "Boston Housing Authority has no development inside Chinatown itself; the nearest is shown. Most subsidised housing here is privately owned and is not in the City's BHA dataset.",
+    "category": {
+      "pharmacy": "Pharmacies",
+      "library": "Library",
+      "hospital": "Hospitals",
+      "health_center": "Health centres",
+      "public_housing": "Public housing",
+      "restaurant": "Restaurants",
+      "park": "Parks and open space"
+    }
+  },
+  "route": {
+    "title": "Plan a shaded walk",
+    "intro": "Tap the map to set where you are starting and where you are going, or search for a place.",
+    "start": "Start",
+    "end": "Destination",
+    "tapStart": "Tap the map to set your start",
+    "tapEnd": "Now tap where you are going",
+    "setStart": "Set start",
+    "setEnd": "Set destination",
+    "search": "Search for a place",
+    "swap": "Swap",
+    "clear": "Clear",
+    "preference": "What matters most",
+    "prefShade": "Most shade",
+    "prefBalanced": "Balanced",
+    "prefShortest": "Shortest walk",
+    "when": "When are you going",
+    "results": "Suggested routes",
+    "inShade": "in shade",
+    "minutes": "min walk",
+    "metres": "m",
+    "noRoute": "No walking route found between those two points.",
+    "needBoth": "Set a start and a destination to see routes.",
+    "calculating": "Finding routes…",
+    "routeLabel": "Route {n}",
+    "shadiest": "Shadiest",
+    "quickest": "Quickest",
+    "disclaimer": "Routes follow City sidewalk data and modelled shade. Check the street before you rely on it — crossings, construction and awnings are not modelled."
   }
 }

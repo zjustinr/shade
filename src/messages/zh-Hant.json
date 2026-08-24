@@ -123,5 +123,48 @@
     "notFoundBody": "此頁面不存在。",
     "backHome": "返回首頁",
     "loading": "載入中…"
+  },
+  "destinations": {
+    "title": "可步行前往的地點",
+    "note": "日常目的地，讓你看到哪條路有遮蔭。如需室內避暑中心，請使用市政府地圖。",
+    "bhaNote": "波士頓房屋管理局在華埠範圍內並無發展項目，此處顯示最近的一個。華埠大部分資助房屋為私人擁有，不在市政府 BHA 資料集之內。",
+    "category": {
+      "pharmacy": "藥房",
+      "library": "圖書館",
+      "hospital": "醫院",
+      "health_center": "社區健康中心",
+      "public_housing": "公共房屋",
+      "restaurant": "餐館",
+      "park": "公園及公共空間"
+    }
+  },
+  "route": {
+    "title": "規劃遮蔭步行路線",
+    "intro": "在地圖上點選起點和終點，或搜尋地點。",
+    "start": "起點",
+    "end": "目的地",
+    "tapStart": "在地圖上點選起點",
+    "tapEnd": "再點選你要去的地方",
+    "setStart": "設定起點",
+    "setEnd": "設定目的地",
+    "search": "搜尋地點",
+    "swap": "對調",
+    "clear": "清除",
+    "preference": "你最重視什麼",
+    "prefShade": "遮蔭最多",
+    "prefBalanced": "兼顧兩者",
+    "prefShortest": "路程最短",
+    "when": "何時出發",
+    "results": "建議路線",
+    "inShade": "在遮蔭下",
+    "minutes": "分鐘步行",
+    "metres": "米",
+    "noRoute": "找不到連接這兩點的步行路線。",
+    "needBoth": "請設定起點和目的地以查看路線。",
+    "calculating": "正在尋找路線…",
+    "routeLabel": "路線 {n}",
+    "shadiest": "最多遮蔭",
+    "quickest": "最快",
+    "disclaimer": "路線根據市政府人行道資料及推算遮蔭計算。實際出行前請留意路面情況——路口、施工及遮篷並未納入模型。"
   }
 }

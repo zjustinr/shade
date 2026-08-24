@@ -123,5 +123,48 @@
     "notFoundBody": "Trang này không tồn tại.",
     "backHome": "Về trang đầu",
     "loading": "Đang tải…"
+  },
+  "destinations": {
+    "title": "Những nơi có thể đi bộ tới",
+    "note": "Các điểm đến hằng ngày, để bạn thấy đường nào có bóng mát. Nếu cần trung tâm tránh nóng trong nhà, hãy dùng bản đồ của Thành phố.",
+    "bhaNote": "Cơ quan Nhà ở Boston không có khu nhà nào nằm trong Khu Phố Tàu; đây là khu gần nhất. Phần lớn nhà ở trợ giá tại đây thuộc sở hữu tư nhân và không nằm trong dữ liệu BHA của Thành phố.",
+    "category": {
+      "pharmacy": "Nhà thuốc",
+      "library": "Thư viện",
+      "hospital": "Bệnh viện",
+      "health_center": "Trung tâm y tế",
+      "public_housing": "Nhà ở công",
+      "restaurant": "Nhà hàng",
+      "park": "Công viên và không gian mở"
+    }
+  },
+  "route": {
+    "title": "Lên lộ trình đi bộ có bóng mát",
+    "intro": "Chạm vào bản đồ để đặt điểm xuất phát và điểm đến, hoặc tìm kiếm một địa điểm.",
+    "start": "Điểm xuất phát",
+    "end": "Điểm đến",
+    "tapStart": "Chạm vào bản đồ để đặt điểm xuất phát",
+    "tapEnd": "Giờ hãy chạm vào nơi bạn muốn đến",
+    "setStart": "Đặt điểm xuất phát",
+    "setEnd": "Đặt điểm đến",
+    "search": "Tìm một địa điểm",
+    "swap": "Đổi chỗ",
+    "clear": "Xoá",
+    "preference": "Điều gì quan trọng nhất",
+    "prefShade": "Nhiều bóng mát nhất",
+    "prefBalanced": "Cân bằng",
+    "prefShortest": "Đường ngắn nhất",
+    "when": "Bạn đi lúc nào",
+    "results": "Lộ trình gợi ý",
+    "inShade": "trong bóng mát",
+    "minutes": "phút đi bộ",
+    "metres": "m",
+    "noRoute": "Không tìm thấy lộ trình đi bộ giữa hai điểm này.",
+    "needBoth": "Hãy đặt điểm xuất phát và điểm đến để xem lộ trình.",
+    "calculating": "Đang tìm lộ trình…",
+    "routeLabel": "Lộ trình {n}",
+    "shadiest": "Nhiều bóng mát nhất",
+    "quickest": "Nhanh nhất",
+    "disclaimer": "Lộ trình dựa trên dữ liệu vỉa hè của Thành phố và bóng mát ước tính. Hãy quan sát thực tế trước khi tin tưởng hoàn toàn — lối qua đường, công trình đang thi công và mái hiên không được mô phỏng."
   }
 }
