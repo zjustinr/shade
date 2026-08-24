@@ -35,15 +35,19 @@ export default async function AdminPage() {
         <StatCard label="Flagged for review" value={String(flaggedCount)} />
       </section>
 
+      {/* File downloads, not page navigations — next/link would attempt a
+          client-side transition and never trigger the download. */}
       <section className="mt-6 flex flex-wrap gap-3">
         <a
           href="/api/admin/export/csv"
+          download
           className="min-h-[44px] rounded-lg bg-neutral-900 px-5 py-2.5 font-semibold text-white"
         >
           Export CSV
         </a>
         <a
           href="/api/admin/export/geojson"
+          download
           className="min-h-[44px] rounded-lg border border-neutral-300 px-5 py-2.5 font-semibold"
         >
           Export GeoJSON
