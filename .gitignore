@@ -46,6 +46,7 @@ next-env.d.ts
 /public/workbox-*.js
 /public/sw.js.map
 /public/workbox-*.js.map
+/public/fallback-*.js
 
 # Copied from node_modules by scripts/copy-maplibre-worker.ts (prebuild)
 /public/maplibre-gl-worker.mjs

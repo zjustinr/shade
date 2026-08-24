@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { RegisterServiceWorker } from "@/components/register-service-worker";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -21,8 +22,17 @@ export async function generateMetadata({
   return {
     title: { default: t("name"), template: `%s · ${t("name")}` },
     description: t("tagline"),
+    manifest: "/manifest.webmanifest",
   };
 }
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // §10 requires legibility at 200% zoom, so pinch-zoom stays enabled.
+  maximumScale: 5,
+  themeColor: "#1f2937",
+};
 
 export default async function LocaleLayout({
   children,
@@ -40,6 +50,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="h-full antialiased">
       <body className="flex min-h-full flex-col bg-white text-neutral-900">
+        <RegisterServiceWorker />
         <NextIntlClientProvider>
           <a
             href="#main"

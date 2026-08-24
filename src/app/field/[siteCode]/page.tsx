@@ -145,14 +145,13 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
         />
       </Field>
 
-      <Field label="Surface type">
-        <ChoiceRow
-          options={surfaceTypeValues}
-          value={surfaceType}
-          onChange={setSurfaceType}
-          name="surface"
-        />
-      </Field>
+      <ChoiceField
+        label="Surface type"
+        options={surfaceTypeValues}
+        value={surfaceType}
+        onChange={setSurfaceType}
+        name="surface"
+      />
 
       <Field label="SUN temperature (°F)">
         <input
@@ -212,16 +211,21 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
         />
       </Field>
 
-      <Field label="What is making the shade?">
-        <ChoiceRow
-          options={shadeSourceValues}
-          value={shadeSource}
-          onChange={setShadeSource}
-          name="shade-source"
-        />
-      </Field>
+      <ChoiceField
+        label="What is making the shade?"
+        options={shadeSourceValues}
+        value={shadeSource}
+        onChange={setShadeSource}
+        name="shade-source"
+      />
 
-      <Field label="Photo">
+      {/* Not a <Field>: this group contains its own <label for>, and nesting
+          labels is invalid HTML — the outer one would capture the file
+          input and shadow the button's name. */}
+      <fieldset className="mb-4">
+        <legend className="mb-2 block text-base font-semibold">Photo</legend>
+        {/* §10 Privacy: no photo containing an identifiable person may be
+            uploaded, and the crew gets a one-tap delete. */}
         <p className="mb-2 text-sm font-medium text-red-700 hc:text-yellow-300">
           Photograph the pavement and streetscape only. Do not upload a photo with a
           recognisable person in it.
@@ -263,7 +267,7 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
             className="mt-2 max-h-48 w-full rounded-lg object-cover"
           />
         ) : null}
-      </Field>
+      </fieldset>
 
       <Field label="Notes (optional)">
         <textarea
@@ -296,6 +300,7 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
   );
 }
 
+/** Wraps a single input. A <label> around one control is exactly right. */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="mb-4 block">
@@ -305,39 +310,66 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function ChoiceRow({
+/**
+ * A group of choices needs fieldset/legend, NOT a wrapping <label>.
+ * A label element wrapping several controls binds to the first one, which
+ * made screen readers announce the first option of each group as the
+ * group's own name ("Surface type" instead of "Asphalt") and broke voice
+ * control for that option. fieldset/legend names the group without
+ * shadowing any option.
+ */
+function ChoiceField({
+  label,
   options,
   value,
   onChange,
   name,
 }: {
+  label: string;
   options: readonly string[];
   value: string;
   onChange: (v: string) => void;
   name: string;
 }) {
   return (
-    <div role="radiogroup" className="flex flex-wrap gap-2">
-      {options.map((option) => {
-        const selected = value === option;
-        return (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            name={name}
-            onClick={() => onChange(option)}
-            className={`min-h-[56px] flex-1 rounded-lg border-2 px-4 text-lg font-medium capitalize ${
-              selected
-                ? "border-neutral-900 bg-neutral-900 text-white hc:border-yellow-400 hc:bg-yellow-400 hc:text-black"
-                : "border-neutral-300 hc:border-yellow-400"
-            }`}
-          >
-            {option.replace("_", " ")}
-          </button>
-        );
-      })}
-    </div>
+    <fieldset className="mb-4">
+      <legend className="mb-2 block text-base font-semibold">{label}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const selected = value === option;
+          const id = `${name}-${option}`;
+          return (
+            <div key={option} className="relative flex flex-1">
+              {/* Native radios: correct semantics, real keyboard behaviour
+                  (arrow keys move within the group), and an accessible name
+                  from the associated label that nothing can shadow.
+                  Transparent and stretched over the whole control rather
+                  than sr-only-sized, so the hit area for a pointer, a
+                  screen reader, or voice control is the full 56px target
+                  and not a 1px box some other element can sit on top of. */}
+              <input
+                type="radio"
+                id={id}
+                name={name}
+                value={option}
+                checked={selected}
+                onChange={() => onChange(option)}
+                className="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0"
+              />
+              <label
+                htmlFor={id}
+                className={`flex min-h-[56px] w-full items-center justify-center rounded-lg border-2 px-4 text-center text-lg font-medium capitalize peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600 ${
+                  selected
+                    ? "border-neutral-900 bg-neutral-900 text-white hc:border-yellow-400 hc:bg-yellow-400 hc:text-black"
+                    : "border-neutral-300 hc:border-yellow-400"
+                }`}
+              >
+                {option.replace("_", " ")}
+              </label>
+            </div>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
