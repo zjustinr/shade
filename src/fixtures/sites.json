@@ -1,0 +1,112 @@
+[
+  {
+    "code": "CT-01",
+    "nameEn": "PLACEHOLDER — bus stop, Washington St",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3505,
+    "lng": -71.0625,
+    "siteType": "bus_stop",
+    "notes": "Example fixture row. Replace with a real surveyed location before the field campaign — see README in this directory.",
+    "isControl": false
+  },
+  {
+    "code": "CT-02",
+    "nameEn": "PLACEHOLDER — senior housing entrance",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3497,
+    "lng": -71.0631,
+    "siteType": "senior_housing",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-03",
+    "nameEn": "PLACEHOLDER — playground",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3512,
+    "lng": -71.0605,
+    "siteType": "playground",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-04",
+    "nameEn": "PLACEHOLDER — crosswalk, Beach St",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3491,
+    "lng": -71.0598,
+    "siteType": "crosswalk",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-05",
+    "nameEn": "PLACEHOLDER — plaza",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3518,
+    "lng": -71.0618,
+    "siteType": "plaza",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-06",
+    "nameEn": "PLACEHOLDER — park",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3486,
+    "lng": -71.0612,
+    "siteType": "park",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-07",
+    "nameEn": "PLACEHOLDER — school entrance",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3502,
+    "lng": -71.0642,
+    "siteType": "school",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-08",
+    "nameEn": "PLACEHOLDER — sidewalk, no canopy",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3524,
+    "lng": -71.0589,
+    "siteType": "other",
+    "notes": "Example fixture row. Replace with a real surveyed location.",
+    "isControl": false
+  },
+  {
+    "code": "CT-C1",
+    "nameEn": "Control — Boston Common (open lawn, approx.)",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3551,
+    "lng": -71.0657,
+    "siteType": "park",
+    "notes": "Control/comparison point outside Chinatown, per §4. Coordinates are an approximate placeholder for a Boston Common open-lawn location — confirm exact point before use.",
+    "isControl": true
+  },
+  {
+    "code": "CT-C2",
+    "nameEn": "Control — Boston Common (tree canopy, approx.)",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3541,
+    "lng": -71.0672,
+    "siteType": "park",
+    "notes": "Control/comparison point outside Chinatown, per §4. Coordinates are an approximate placeholder for a Boston Common tree-canopy location — confirm exact point before use.",
+    "isControl": true
+  }
+]
