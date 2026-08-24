@@ -47,7 +47,7 @@ export default function FieldSiteListPage() {
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocationError("No GPS on this device.");
+      queueMicrotask(() => setLocationError("No GPS on this device."));
       return;
     }
     const watchId = navigator.geolocation.watchPosition(

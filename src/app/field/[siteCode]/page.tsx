@@ -4,6 +4,7 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCachedSites, queueReading, type CachedSite } from "@/lib/offline-db";
+import { useLocalStorage } from "@/lib/use-local-storage";
 import { syncPendingReadings } from "@/lib/sync";
 import { shadeSourceValues, surfaceTypeValues } from "@/db/schema";
 
@@ -14,7 +15,8 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
   const router = useRouter();
 
   const [site, setSite] = useState<CachedSite | null>(null);
-  const [observer, setObserver] = useState("");
+  // Persisted so a crew member types their name once per shift, not once per site.
+  const [observer, setObserver] = useLocalStorage(OBSERVER_KEY, "");
   const [recordedAt] = useState(() => new Date());
   const [surfaceType, setSurfaceType] = useState<string>("");
   const [sunTemp, setSunTemp] = useState("");
@@ -32,7 +34,6 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
     getCachedSites().then((sites) => {
       setSite(sites.find((s) => s.code === siteCode) ?? null);
     });
-    setObserver(window.localStorage.getItem(OBSERVER_KEY) ?? "");
   }, [siteCode]);
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
     setError(null);
 
     try {
-      window.localStorage.setItem(OBSERVER_KEY, observer.trim());
+      setObserver(observer.trim());
       const id = crypto.randomUUID();
 
       // §7: save writes to IndexedDB immediately and returns to the list.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { getPendingCount } from "@/lib/offline-db";
 
 export function usePendingCount() {
@@ -28,20 +28,20 @@ export function usePendingCount() {
   return count;
 }
 
+function subscribeToConnectivity(callback: () => void) {
+  window.addEventListener("online", callback);
+  window.addEventListener("offline", callback);
+  return () => {
+    window.removeEventListener("online", callback);
+    window.removeEventListener("offline", callback);
+  };
+}
+
 export function useOnlineStatus() {
-  const [online, setOnline] = useState(true);
-
-  useEffect(() => {
-    setOnline(navigator.onLine);
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-  }, []);
-
-  return online;
+  return useSyncExternalStore(
+    subscribeToConnectivity,
+    () => navigator.onLine,
+    // Assume online during SSR; the client corrects it on hydration.
+    () => true,
+  );
 }
