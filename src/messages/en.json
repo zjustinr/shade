@@ -159,6 +159,7 @@
     "routeLabel": "Route {n}",
     "shadiest": "Shadiest",
     "quickest": "Quickest",
-    "disclaimer": "Routes follow City sidewalk data and modelled shade. Check the street before you rely on it — crossings, construction and awnings are not modelled."
+    "disclaimer": "Routes follow City sidewalk data and modelled shade. Check the street before you rely on it — crossings, construction and awnings are not modelled.",
+    "selected": "On the map"
   }
 }

@@ -5,9 +5,11 @@ import {
   AttributionControl,
   GeoJSONSource,
   Map as MapLibreMap,
+  Marker,
   NavigationControl,
   setWorkerUrl,
   type DataDrivenPropertyValueSpecification,
+  type MapLayerMouseEvent,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocale, useTranslations } from "next-intl";
@@ -30,6 +32,7 @@ import {
 import { nearestNode } from "@/lib/network";
 import { planRoutes, type Route } from "@/lib/routing";
 import { useExposure, useRouteData } from "@/lib/use-route-data";
+import { badgeFraction, pointAlong, routeColour } from "@/lib/route-style";
 import { ReadingCard } from "./reading-card";
 import { RoutePlanner, type PlannerPreference, type RoutePoint } from "./route-planner";
 
@@ -216,15 +219,23 @@ export function ShadeMap({
           "circle-stroke-color": "#ffffff",
         },
       });
-      // Alternatives first, in a muted tone, so the chosen route reads as
-      // the answer and the others as options rather than clutter.
+      // Each route keeps its own colour whether or not it is selected —
+      // the colour is its identity, matching its card and its numbered
+      // badge. Selection is shown by weight instead: alternatives are
+      // thin and dashed, the chosen route is wide, solid, and sits on a
+      // white casing. Weight + dash also survives colour-blindness.
       map.addLayer({
         id: "routes-alt",
         type: "line",
         source: "routes",
         filter: ["!=", ["get", "selected"], true],
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": "#64748b", "line-width": 4, "line-opacity": 0.55 },
+        paint: {
+          "line-color": ["get", "color"],
+          "line-width": 4,
+          "line-opacity": 0.75,
+          "line-dasharray": [2, 1.5],
+        },
       });
       map.addLayer({
         id: "routes-selected-casing",
@@ -232,7 +243,7 @@ export function ShadeMap({
         source: "routes",
         filter: ["==", ["get", "selected"], true],
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": "#ffffff", "line-width": 10 },
+        paint: { "line-color": "#ffffff", "line-width": 11 },
       });
       map.addLayer({
         id: "routes-selected",
@@ -240,7 +251,7 @@ export function ShadeMap({
         source: "routes",
         filter: ["==", ["get", "selected"], true],
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": "#1d4ed8", "line-width": 6 },
+        paint: { "line-color": ["get", "color"], "line-width": 7 },
       });
 
       map.addLayer({
@@ -453,6 +464,80 @@ export function ShadeMap({
     ]);
   }, [map, categories]);
 
+  /**
+   * Clicking a route line — either version of it — selects that route, so
+   * the map and the card list stay two views of the same choice. Ignored
+   * while the user is placing a start/end point, when a map tap means
+   * "here", not "this one".
+   */
+  useEffect(() => {
+    if (!map || picking) return;
+    const onClick = (event: MapLayerMouseEvent) => {
+      const index = event.features?.[0]?.properties?.index;
+      if (typeof index === "number") setSelectedRoute(index);
+    };
+    const onEnter = () => {
+      map.getCanvas().style.cursor = "pointer";
+    };
+    const onLeave = () => {
+      map.getCanvas().style.cursor = "";
+    };
+    for (const layer of ["routes-alt", "routes-selected"]) {
+      if (!map.getLayer(layer)) continue;
+      map.on("click", layer, onClick);
+      map.on("mouseenter", layer, onEnter);
+      map.on("mouseleave", layer, onLeave);
+    }
+    return () => {
+      for (const layer of ["routes-alt", "routes-selected"]) {
+        map.off("click", layer, onClick);
+        map.off("mouseenter", layer, onEnter);
+        map.off("mouseleave", layer, onLeave);
+      }
+    };
+  }, [map, picking]);
+
+  /**
+   * Numbered badges pinned to each route line — the direct answer to
+   * "which line is Route 2". HTML markers rather than a symbol layer
+   * because symbol text needs the basemap style to provide glyphs, and the
+   * badge must not vanish if the basemap fails to load. Staggered along
+   * each route so shared first/last blocks don't stack the numbers.
+   */
+  useEffect(() => {
+    if (!map) return;
+    const markers: Marker[] = [];
+    routes.forEach((route, i) => {
+      const selected = i === activeRoute;
+      const colour = routeColour(i);
+      const el = document.createElement("button");
+      el.type = "button";
+      el.textContent = String(i + 1);
+      el.setAttribute("aria-label", tRoute("routeLabel", { n: i + 1 }));
+      el.setAttribute("aria-pressed", String(selected));
+      const size = selected ? 30 : 24;
+      el.style.cssText =
+        `width:${size}px;height:${size}px;border-radius:9999px;` +
+        `background:${colour};color:#fff;border:2px solid #fff;` +
+        `font:700 ${selected ? 15 : 13}px/1 system-ui,sans-serif;` +
+        `display:flex;align-items:center;justify-content:center;padding:0;` +
+        `cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.45)` +
+        (selected ? `,0 0 0 3px ${colour}55;z-index:2;` : `;opacity:.92;`);
+      el.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setSelectedRoute(i);
+      });
+      markers.push(
+        new Marker({ element: el })
+          .setLngLat(pointAlong(route.line, badgeFraction(i)))
+          .addTo(map),
+      );
+    });
+    return () => {
+      markers.forEach((m) => m.remove());
+    };
+  }, [map, routes, activeRoute, tRoute]);
+
   // Route geometry and endpoint markers.
   useEffect(() => {
     const source = map?.getSource("routes") as GeoJSONSource | undefined;
@@ -463,7 +548,7 @@ export function ShadeMap({
         .map((route, i) => ({
           type: "Feature" as const,
           geometry: { type: "LineString" as const, coordinates: route.line },
-          properties: { index: i, selected: i === activeRoute },
+          properties: { index: i, selected: i === activeRoute, color: routeColour(i) },
         }))
         .sort((a, b) => Number(a.properties.selected) - Number(b.properties.selected)),
     });

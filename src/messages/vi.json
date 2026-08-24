@@ -165,6 +165,7 @@
     "routeLabel": "Lộ trình {n}",
     "shadiest": "Nhiều bóng mát nhất",
     "quickest": "Nhanh nhất",
-    "disclaimer": "Lộ trình dựa trên dữ liệu vỉa hè của Thành phố và bóng mát ước tính. Hãy quan sát thực tế trước khi tin tưởng hoàn toàn — lối qua đường, công trình đang thi công và mái hiên không được mô phỏng."
+    "disclaimer": "Lộ trình dựa trên dữ liệu vỉa hè của Thành phố và bóng mát ước tính. Hãy quan sát thực tế trước khi tin tưởng hoàn toàn — lối qua đường, công trình đang thi công và mái hiên không được mô phỏng.",
+    "selected": "Đang hiển thị"
   }
 }

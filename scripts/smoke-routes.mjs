@@ -137,6 +137,62 @@ check(
   `(${shadiestUnderShade}%)`,
 );
 
+// --- Which-is-which: badges, colours, and selection ---
+// Map badges are standalone buttons whose accessible name is exactly
+// "Route N"; the cards contain that text plus stats, so aria-label match
+// keeps the two apart.
+const badge = (n) => page.locator(`button[aria-label="Route ${n}"]`);
+check("numbered badges sit on the map lines", (await badge(1).count()) === 1 && (await badge(2).count()) === 1 && (await badge(3).count()) === 1);
+
+const badgeColours = [];
+for (const n of [1, 2, 3]) {
+  badgeColours.push(
+    await badge(n).evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => null),
+  );
+}
+check(
+  "each route badge has a distinct colour",
+  new Set(badgeColours).size === badgeColours.length,
+  `(${badgeColours.join(" | ")})`,
+);
+
+// The card's swatch must be the same colour as the map badge — that match
+// is what answers "which line is Route 2".
+const cardSwatch = await routeCards
+  .nth(1)
+  .locator("span[aria-hidden]")
+  .first()
+  .evaluate((el) => getComputedStyle(el).backgroundColor)
+  .catch(() => null);
+check(
+  "card swatch matches the map badge for the same route",
+  cardSwatch === badgeColours[1],
+  `(card ${cardSwatch} vs badge ${badgeColours[1]})`,
+);
+
+// Selection: route 1 starts selected; clicking badge 2 must move the
+// highlight to card 2 and to badge 2.
+check("route 1 starts selected", (await routeCards.nth(0).getAttribute("aria-pressed")) === "true");
+await badge(2).click();
+await page.waitForTimeout(800);
+check(
+  "clicking a map badge selects that route's card",
+  (await routeCards.nth(1).getAttribute("aria-pressed")) === "true" &&
+    (await routeCards.nth(0).getAttribute("aria-pressed")) === "false",
+);
+check(
+  "the selected badge is visibly larger",
+  await badge(2).evaluate((el) => el.offsetWidth) >
+    (await badge(1).evaluate((el) => el.offsetWidth)),
+);
+await routeCards.nth(2).click();
+await page.waitForTimeout(800);
+check(
+  "clicking a card moves the selection there",
+  (await routeCards.nth(2).getAttribute("aria-pressed")) === "true" &&
+    (await badge(3).getAttribute("aria-pressed")) === "true",
+);
+
 // --- The route must be drawn ---
 const drawn = await page.evaluate(() => {
   const canvas = document.querySelector("canvas.maplibregl-canvas");

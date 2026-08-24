@@ -51,3 +51,6 @@ next-env.d.ts
 # Copied from node_modules by scripts/copy-maplibre-worker.ts (prebuild)
 /public/maplibre-gl-worker.mjs
 /public/maplibre-gl-shared.mjs
+
+# local browser-test basemap (never committed)
+/public/test-style.json

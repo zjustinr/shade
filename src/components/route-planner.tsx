@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Destination } from "@/lib/destinations";
 import type { Route } from "@/lib/routing";
+import { routeColour } from "@/lib/route-style";
 
 export type RoutePoint = {
   lng: number;
@@ -211,22 +212,46 @@ export function RoutePlanner({
               const shadiest = i === 0;
               const quickest =
                 route.distanceM === Math.min(...routes.map((r) => r.distanceM));
+              const colour = routeColour(i);
+              const selected = selectedRoute === i;
               return (
                 <li key={i}>
                   <button
                     type="button"
                     onClick={() => onSelectRoute(i)}
-                    aria-pressed={selectedRoute === i}
+                    aria-pressed={selected}
                     className={`w-full rounded-lg border-2 px-3 py-2 text-left ${
-                      selectedRoute === i
-                        ? "border-blue-700 bg-blue-50"
-                        : "border-neutral-200"
+                      selected ? "" : "border-neutral-200"
                     }`}
+                    // The card borrows the route's own colour when selected,
+                    // so card, badge and map line read as one thing.
+                    style={
+                      selected
+                        ? { borderColor: colour, backgroundColor: `${colour}14` }
+                        : undefined
+                    }
                   >
-                    <div className="flex flex-wrap items-baseline gap-x-3">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      {/* Same badge as the one sitting on the map line:
+                          number-in-a-circle in the route's colour. */}
+                      <span
+                        aria-hidden
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white text-sm font-bold text-white shadow"
+                        style={{ backgroundColor: colour }}
+                      >
+                        {i + 1}
+                      </span>
                       <span className="font-semibold">
                         {t("routeLabel", { n: i + 1 })}
                       </span>
+                      {selected ? (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+                          style={{ backgroundColor: colour }}
+                        >
+                          {t("selected")}
+                        </span>
+                      ) : null}
                       {shadiest ? <Tag>{t("shadiest")}</Tag> : null}
                       {quickest ? <Tag>{t("quickest")}</Tag> : null}
                     </div>
