@@ -1,5 +1,5 @@
 import { desc, eq, isNotNull } from "drizzle-orm";
-import { db, readings, sites } from "@/db";
+import { db, isDatabaseConfigured, readings, sites } from "@/db";
 
 /**
  * What the public map is allowed to see. Deliberately narrow: no observer
@@ -24,6 +24,10 @@ export type PublicReading = {
 };
 
 export async function getPublicReadings(): Promise<PublicReading[]> {
+  // The shade model is static, so the map is still worth showing before a
+  // database exists — just with no validation points on it.
+  if (!isDatabaseConfigured()) return [];
+
   const rows = await db
     .select({ reading: readings, site: sites })
     .from(readings)

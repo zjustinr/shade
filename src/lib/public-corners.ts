@@ -1,4 +1,4 @@
-import { db, coolingCorners } from "@/db";
+import { db, coolingCorners, isDatabaseConfigured } from "@/db";
 import type { Locale } from "@/i18n/routing";
 
 export type PublicCorner = {
@@ -18,6 +18,8 @@ export type PublicCorner = {
  * translation has not been filled in yet.
  */
 export async function getPublicCorners(locale: Locale): Promise<PublicCorner[]> {
+  if (!isDatabaseConfigured()) return [];
+
   const rows = await db.select().from(coolingCorners).orderBy(coolingCorners.id);
 
   return rows.map((row) => ({

@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { SetupNotice } from "@/components/setup-notice";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -58,6 +59,7 @@ export default async function LocaleLayout({
           >
             {t("skipToContent")}
           </a>
+          <SetupNotice />
           <SiteHeader />
           <main id="main" className="flex-1">
             {children}
