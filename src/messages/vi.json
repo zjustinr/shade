@@ -1,0 +1,125 @@
+{
+  "_meta": {
+    "locale": "vi",
+    "script": "Vietnamese",
+    "reviewStatus": "UNREVIEWED_MACHINE_DRAFT",
+    "note": "SPEC §8: these strings are a first-pass draft and MUST be reviewed by a community translator before public launch. The grant budget includes six hours for exactly this. Do not launch publicly with this file in UNREVIEWED_MACHINE_DRAFT state."
+  },
+  "site": {
+    "name": "Góc Mát Khu Phố Tàu",
+    "tagline": "Bóng mát thực sự ở đâu, theo từng dãy phố."
+  },
+  "nav": {
+    "home": "Trang chính",
+    "map": "Bản đồ bóng mát",
+    "corners": "Góc Mát",
+    "about": "Giới thiệu",
+    "language": "Ngôn ngữ",
+    "skipToContent": "Chuyển tới nội dung"
+  },
+  "home": {
+    "heading": "Bóng mát ở Khu Phố Tàu nằm ở đâu?",
+    "intro": "Boston chưa từng có bản đồ bóng mát. Bản đồ này cho thấy bóng của các toà nhà và cây xanh đường phố theo từng giờ, được đối chiếu với nhiệt độ do một nhóm thanh niên trong khu phố đo trực tiếp trên vỉa hè.",
+    "whyItMatters": "Bạn cần bóng mát trên đường đi, chứ không phải sau khi đã tới nơi. Vào ngày nắng nóng, mặt đường bên nắng và bên râm của cùng một con phố có thể chênh nhau hàng chục độ.",
+    "openMap": "Mở bản đồ bóng mát",
+    "aboutLink": "Bản đồ này được làm thế nào",
+    "coolingHeading": "Bạn đang tìm nơi có máy lạnh?",
+    "coolingBody": "Thành phố Boston có sẵn bản đồ các hồ bơi, khu phun nước, thư viện và trung tâm tránh nóng. Trang này không làm lại dịch vụ đó.",
+    "coolingLink": "Trung tâm tránh nóng trong nhà → Bản đồ Thành phố Boston"
+  },
+  "map": {
+    "heading": "Bản đồ bóng mát",
+    "timeOfDay": "Giờ trong ngày",
+    "date": "Ngày",
+    "layers": "Lớp bản đồ",
+    "layerShade": "Bóng mát ước tính",
+    "layerTrees": "Cây đường phố",
+    "layerReadings": "Số liệu đo thực địa",
+    "layerCorners": "Góc Mát",
+    "sunBelowHorizon": "Vào giờ này mặt trời đã khuất, mọi nơi đều là bóng râm.",
+    "loading": "Đang tải dữ liệu bóng mát…",
+    "textFallbackHeading": "Danh sách số liệu đo thực địa",
+    "textFallbackIntro": "Toàn bộ số liệu trên bản đồ, dưới dạng văn bản.",
+    "cityCoolingLink": "Trung tâm tránh nóng trong nhà → Bản đồ Thành phố Boston",
+    "attribution": "Dữ liệu toà nhà và cây xanh: Dữ liệu Mở Thành phố Boston. Bản đồ nền: OpenFreeMap / những người đóng góp OpenStreetMap.",
+    "legendBuilding": "Bóng toà nhà",
+    "legendTree": "Bóng cây (độ chắc chắn thấp hơn)",
+    "legendReading": "Số liệu đo thực địa",
+    "legendCorner": "Góc Mát"
+  },
+  "disclaimer": {
+    "short": "Bóng mát ước tính. Chỉ tính toà nhà và cây xanh — không bao gồm mái hiên, giàn giáo và nhà chờ. Đã đối chiếu bằng đo đạc thực địa tại 60 địa điểm.",
+    "title": "Về lớp bóng mát này"
+  },
+  "reading": {
+    "title": "Số liệu đo thực địa",
+    "sunTemp": "Ngoài nắng",
+    "shadeTemp": "Trong bóng râm",
+    "difference": "Chênh lệch",
+    "surface": "Mặt nền",
+    "shadeFrom": "Bóng mát từ",
+    "recordedAt": "Thời điểm đo",
+    "flagged": "Đã đánh dấu để xem lại",
+    "photoAlt": "Ảnh mặt đường tại địa điểm đo này",
+    "surfaceType": {
+      "asphalt": "Nhựa đường",
+      "concrete": "Bê tông",
+      "brick": "Gạch",
+      "other": "Khác"
+    },
+    "shadeSource": {
+      "tree": "Cây",
+      "awning": "Mái hiên",
+      "building": "Toà nhà",
+      "bus_shelter": "Nhà chờ xe buýt",
+      "other": "Khác"
+    }
+  },
+  "corners": {
+    "heading": "Góc Mát",
+    "intro": "Hai địa điểm trong Khu Phố Tàu nơi dự án này đã tạo thêm bóng mát và chỗ ngồi.",
+    "seating": "Có chỗ ngồi",
+    "installed": "Ngày lắp đặt",
+    "empty": "Các Góc Mát chưa được xây dựng. Trang này sẽ hiển thị khi hoàn thành."
+  },
+  "about": {
+    "heading": "Về dự án này",
+    "whatHeading": "Đây là gì",
+    "whatBody": "Một bản đồ bóng mát cho Khu Phố Tàu của Boston, cùng công cụ thực địa dùng để thu thập số liệu nhiệt độ phía sau nó. Do một nhóm thanh niên trong khu phố thực hiện.",
+    "gapHeading": "Vì sao cần bản đồ bóng mát",
+    "gapBody": "Thành phố Boston đã có bản đồ các nguồn tránh nóng trong nhà — hồ bơi, khu phun nước, thư viện, trung tâm tránh nóng. Mọi lớp trên bản đồ đó đều là cơ sở trong nhà hoặc dưới nước. Không có bất kỳ dữ liệu bóng mát nào, và Boston chưa từng công bố bản đồ bóng mát. Đó chính là khoảng trống mà dự án này lấp vào. Bạn cần bóng mát trên đường tới trung tâm tránh nóng, chứ không phải sau khi đã tới nơi.",
+    "methodHeading": "Bóng mát được tính thế nào",
+    "methodBody": "Với mỗi thời điểm, chúng tôi tính vị trí mặt trời, rồi chiếu bóng từ mặt bằng của từng toà nhà và từng cây đường phố trong khu vực. Chiều cao toà nhà lấy từ bộ dữ liệu mái nhà của Thành phố. Chiều dài bóng bằng chiều cao vật chia cho tang của góc cao mặt trời.",
+    "readingsHeading": "Số liệu đo thực địa",
+    "readingsBody": "Nhóm sáu người dùng nhiệt kế hồng ngoại đo từng cặp nhiệt độ mặt nền ngoài nắng và trong bóng râm tại nhiều địa điểm khắp Khu Phố Tàu, ghi lại loại mặt nền, nguồn tạo bóng và một tấm ảnh. Khi số liệu đo không khớp với ước tính, cả hai đều được hiển thị. Số liệu đo thực địa là căn cứ chuẩn.",
+    "limitsHeading": "Bản đồ này không làm được gì",
+    "limitsIntro": "Đây là một mô hình xấp xỉ trên mặt phẳng, và cần nói rõ những giới hạn của nó:",
+    "limitTerrain": "Không tính độ dốc, coi mọi mặt đất là bằng phẳng.",
+    "limitStructures": "Không mô phỏng mái hiên, giàn giáo, phần nhô ra hay nhà chờ xe buýt — dù tất cả đều tạo bóng thật trên vỉa hè thật.",
+    "limitTrees": "Tán cây được mô phỏng như hình tròn không cho ánh sáng xuyên qua. Điều này làm phóng đại bóng rợp dày và xem nhẹ bóng lốm đốm. Vì vậy bóng cây được vẽ nhạt hơn trên bản đồ.",
+    "limitTreeData": "Dữ liệu cây của Thành phố chỉ ghi đường kính thân, không có kích thước tán hay chiều cao, nên tán và chiều cao được ước tính từ đường kính thân chứ không phải đo đạc.",
+    "limitHeights": "Trong {total} mặt bằng toà nhà, có {skipped} mặt bằng không có chiều cao dùng được trong dữ liệu gốc. Những toà nhà đó được loại khỏi mô hình thay vì đoán chừng.",
+    "limitSeason": "Mô hình đi kèm bóng tính sẵn cho các ngày xuân phân, thu phân, hạ chí và đông chí. Đợt kiểm chứng mùa hè bằng số liệu thực địa dự kiến vào năm 2027 — hiện chưa thực hiện.",
+    "sourcesHeading": "Nguồn dữ liệu",
+    "sourceTrees": "Cây đường phố và công viên",
+    "sourceBuildings": "Mặt bằng và chiều cao toà nhà",
+    "sourceCity": "Bản đồ nguồn tránh nóng của Thành phố Boston",
+    "privacyHeading": "Quyền riêng tư",
+    "privacyBody": "Không tài khoản, không theo dõi, không dùng công cụ phân tích của bên thứ ba. Cookie duy nhất chỉ ghi nhớ ngôn ngữ bạn chọn. Người đo chỉ được ghi tên gọi, và vị trí chỉ được lấy đúng vào lúc thực hiện phép đo.",
+    "contactHeading": "Liên hệ"
+  },
+  "print": {
+    "heading": "Bảng bóng mát",
+    "morning": "9 giờ sáng",
+    "midday": "12 giờ trưa",
+    "afternoon": "3 giờ chiều",
+    "scanForMore": "Quét để xem bản đồ trực tuyến",
+    "printedOn": "Ngày in"
+  },
+  "common": {
+    "notFound": "Không tìm thấy trang",
+    "notFoundBody": "Trang này không tồn tại.",
+    "backHome": "Về trang đầu",
+    "loading": "Đang tải…"
+  }
+}

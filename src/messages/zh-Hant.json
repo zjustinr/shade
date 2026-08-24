@@ -1,0 +1,125 @@
+{
+  "_meta": {
+    "locale": "zh-Hant",
+    "script": "Traditional Chinese (Cantonese/Toisanese-speaking community)",
+    "reviewStatus": "UNREVIEWED_MACHINE_DRAFT",
+    "note": "SPEC §8: these strings are a first-pass draft and MUST be reviewed by a community translator before public launch. The grant budget includes six hours for exactly this. Do not launch publicly with this file in UNREVIEWED_MACHINE_DRAFT state."
+  },
+  "site": {
+    "name": "華埠清涼角落",
+    "tagline": "逐街區顯示遮蔭實際所在。"
+  },
+  "nav": {
+    "home": "主頁",
+    "map": "遮蔭地圖",
+    "corners": "清涼角落",
+    "about": "關於",
+    "language": "語言",
+    "skipToContent": "跳至內容"
+  },
+  "home": {
+    "heading": "華埠哪裡有遮蔭？",
+    "intro": "波士頓從未有過遮蔭地圖。這張地圖顯示樓宇和行道樹在一天中各個時段投下的陰影，並以社區青年隊在人行道上實測的溫度作核對。",
+    "whyItMatters": "你在路上需要遮蔭，而不是到達之後才需要。炎熱的日子裡，同一條街向陽面與背陰面的地面溫度可以相差幾十度。",
+    "openMap": "開啟遮蔭地圖",
+    "aboutLink": "本地圖如何製作",
+    "coolingHeading": "想找有冷氣的地方？",
+    "coolingBody": "波士頓市政府設有泳池、噴水區、圖書館及避暑中心的地圖。本網站不重複該服務。",
+    "coolingLink": "室內避暑中心 → 波士頓市政府地圖"
+  },
+  "map": {
+    "heading": "遮蔭地圖",
+    "timeOfDay": "時間",
+    "date": "日期",
+    "layers": "圖層",
+    "layerShade": "推算遮蔭",
+    "layerTrees": "行道樹",
+    "layerReadings": "實地測量",
+    "layerCorners": "清涼角落",
+    "sunBelowHorizon": "此時太陽在地平線以下，各處皆為陰影。",
+    "loading": "正在載入遮蔭資料…",
+    "textFallbackHeading": "實地測量一覽表",
+    "textFallbackIntro": "地圖上所有測量結果，以文字列出。",
+    "cityCoolingLink": "室內避暑中心 → 波士頓市政府地圖",
+    "attribution": "樓宇及樹木資料：波士頓市政府公開資料。底圖：OpenFreeMap／OpenStreetMap 貢獻者。",
+    "legendBuilding": "樓宇陰影",
+    "legendTree": "樹木陰影（準確度較低）",
+    "legendReading": "實地測量",
+    "legendCorner": "清涼角落"
+  },
+  "disclaimer": {
+    "short": "此為推算遮蔭，僅計算樓宇與樹木，不包括遮篷、棚架及候車亭。已於 60 個地點以實地測量核對。",
+    "title": "關於此遮蔭圖層"
+  },
+  "reading": {
+    "title": "實地測量",
+    "sunTemp": "向陽處",
+    "shadeTemp": "陰影處",
+    "difference": "溫差",
+    "surface": "地面材質",
+    "shadeFrom": "遮蔭來源",
+    "recordedAt": "測量時間",
+    "flagged": "已標記待覆核",
+    "photoAlt": "此測量地點的路面照片",
+    "surfaceType": {
+      "asphalt": "瀝青",
+      "concrete": "混凝土",
+      "brick": "磚",
+      "other": "其他"
+    },
+    "shadeSource": {
+      "tree": "樹木",
+      "awning": "遮篷",
+      "building": "樓宇",
+      "bus_shelter": "候車亭",
+      "other": "其他"
+    }
+  },
+  "corners": {
+    "heading": "清涼角落",
+    "intro": "本計劃在華埠增設遮蔭和座位的兩個地點。",
+    "seating": "設有座位",
+    "installed": "設置日期",
+    "empty": "清涼角落尚未建成。建成後將在此頁顯示。"
+  },
+  "about": {
+    "heading": "關於本計劃",
+    "whatHeading": "這是什麼",
+    "whatBody": "一張波士頓華埠的遮蔭地圖，以及用來收集背後溫度數據的實地測量工具。由社區青年隊製作。",
+    "gapHeading": "為何要做遮蔭地圖",
+    "gapBody": "波士頓市政府已設有室內避暑資源地圖——泳池、噴水區、圖書館、避暑中心。該地圖上每一個圖層都是室內或戲水設施，完全沒有遮蔭資料，而波士頓亦從未發布過遮蔭地圖。這正是本計劃要填補的空白。你在前往避暑中心的路上需要遮蔭，而不是到達之後才需要。",
+    "methodHeading": "遮蔭如何推算",
+    "methodBody": "對於任何一個時刻，我們先計算太陽位置，再由區內每一座樓宇的外框和每一棵行道樹投射陰影。樓宇高度取自市政府的屋頂資料集。陰影長度等於物體高度除以太陽仰角的正切值。",
+    "readingsHeading": "實地測量",
+    "readingsBody": "六人小隊以紅外線溫度計在華埠各處成對測量向陽處與陰影處的地面溫度，並記錄地面材質、遮蔭來源及照片。若測量結果與推算不符，兩者會同時顯示。實測數據為準。",
+    "limitsHeading": "本地圖做不到什麼",
+    "limitsIntro": "這是一個平地近似模型，其限制值得說清楚：",
+    "limitTerrain": "不考慮坡度，視所有地面為平坦。",
+    "limitStructures": "不計算遮篷、棚架、外伸結構或候車亭——但這些在真實人行道上都會產生遮蔭。",
+    "limitTrees": "樹冠以不透光的圓形模擬，因此高估濃蔭、低估斑駁疏蔭。基於此，地圖上樹木陰影以較淺的顏色顯示。",
+    "limitTreeData": "市政府的樹木資料只記錄樹幹直徑，並無樹冠大小或樹高，因此樹冠與樹高是由樹幹直徑推算，並非實測。",
+    "limitHeights": "在 {total} 個樓宇外框中，有 {skipped} 個在原始資料中沒有可用高度。這些樓宇不納入模型，而非以猜測代替。",
+    "limitSeason": "模型預先計算了春分、秋分及夏至、冬至的陰影。以實地測量進行的夏季驗證計劃於 2027 年進行——目前尚未完成。",
+    "sourcesHeading": "資料來源",
+    "sourceTrees": "街道及公園樹木",
+    "sourceBuildings": "樓宇外框及高度",
+    "sourceCity": "波士頓市政府避暑資源地圖",
+    "privacyHeading": "私隱",
+    "privacyBody": "不設帳戶、不追蹤、不使用第三方分析工具。唯一的 cookie 只記住你選擇的語言。測量員只記錄名字，位置亦只在測量當下擷取一次。",
+    "contactHeading": "聯絡"
+  },
+  "print": {
+    "heading": "遮蔭資料表",
+    "morning": "上午 9 時",
+    "midday": "中午 12 時",
+    "afternoon": "下午 3 時",
+    "scanForMore": "掃描查看即時地圖",
+    "printedOn": "列印日期"
+  },
+  "common": {
+    "notFound": "找不到頁面",
+    "notFoundBody": "此頁面不存在。",
+    "backHome": "返回首頁",
+    "loading": "載入中…"
+  }
+}

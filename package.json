@@ -11,7 +11,9 @@
     "db:migrate": "drizzle-kit migrate",
     "seed:sites": "tsx scripts/seed-sites.ts",
     "extract:data": "tsx scripts/extract-data.ts",
-    "build:shade": "tsx scripts/compute-shade.ts"
+    "build:shade": "tsx scripts/compute-shade.ts",
+    "check:i18n": "tsx scripts/check-i18n.ts",
+    "verify:shade": "tsx scripts/verify-shade.ts"
   },
   "dependencies": {
     "@turf/turf": "^7.4.0",

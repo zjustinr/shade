@@ -1,0 +1,119 @@
+{
+  "site": {
+    "name": "Chinatown Cool Corners",
+    "tagline": "Where the shade actually is, block by block."
+  },
+  "nav": {
+    "home": "Home",
+    "map": "Shade map",
+    "corners": "Cool Corners",
+    "about": "About",
+    "language": "Language",
+    "skipToContent": "Skip to content"
+  },
+  "home": {
+    "heading": "Where is the shade in Chinatown?",
+    "intro": "Boston has no shade map. This one shows where buildings and street trees cast shadow, hour by hour, checked against temperature readings taken on the sidewalk by a neighbourhood youth crew.",
+    "whyItMatters": "Shade is what you need on the walk, not after you arrive. On a hot day the difference between the sunny and shaded side of the same street can be tens of degrees underfoot.",
+    "openMap": "Open the shade map",
+    "aboutLink": "How this was made",
+    "coolingHeading": "Looking for an air-conditioned place?",
+    "coolingBody": "The City of Boston runs a map of pools, splash pads, libraries and cooling centres. This site does not duplicate it.",
+    "coolingLink": "Indoor cooling centers → City of Boston map"
+  },
+  "map": {
+    "heading": "Shade map",
+    "timeOfDay": "Time of day",
+    "date": "Date",
+    "layers": "Layers",
+    "layerShade": "Modelled shade",
+    "layerTrees": "Street trees",
+    "layerReadings": "Field readings",
+    "layerCorners": "Cool Corners",
+    "sunBelowHorizon": "The sun is below the horizon at this time — everywhere is in shade.",
+    "loading": "Loading shade…",
+    "textFallbackHeading": "Field readings as a list",
+    "textFallbackIntro": "Every reading on the map, as text.",
+    "cityCoolingLink": "Indoor cooling centers → City of Boston map",
+    "attribution": "Building and tree data: City of Boston Open Data. Basemap: OpenFreeMap / OpenStreetMap contributors.",
+    "legendBuilding": "Building shadow",
+    "legendTree": "Tree shadow (less certain)",
+    "legendReading": "Field reading",
+    "legendCorner": "Cool Corner"
+  },
+  "disclaimer": {
+    "short": "Modelled shade. Buildings and trees only — awnings, scaffolding and shelters are not included. Verified by field measurement at 60 locations.",
+    "title": "About this shade layer"
+  },
+  "reading": {
+    "title": "Field reading",
+    "sunTemp": "In the sun",
+    "shadeTemp": "In the shade",
+    "difference": "Difference",
+    "surface": "Surface",
+    "shadeFrom": "Shade from",
+    "recordedAt": "Measured",
+    "flagged": "Flagged for review",
+    "photoAlt": "Photo of the pavement at this reading location",
+    "surfaceType": {
+      "asphalt": "Asphalt",
+      "concrete": "Concrete",
+      "brick": "Brick",
+      "other": "Other"
+    },
+    "shadeSource": {
+      "tree": "Tree",
+      "awning": "Awning",
+      "building": "Building",
+      "bus_shelter": "Bus shelter",
+      "other": "Other"
+    }
+  },
+  "corners": {
+    "heading": "Cool Corners",
+    "intro": "Two places in Chinatown where this project added shade and somewhere to sit.",
+    "seating": "Has seating",
+    "installed": "Installed",
+    "empty": "The Cool Corners have not been built yet. This page will show them once they are."
+  },
+  "about": {
+    "heading": "About this project",
+    "whatHeading": "What this is",
+    "whatBody": "A shade map for Boston's Chinatown, and the field tool used to gather the temperature readings behind it. Built by a neighbourhood youth crew.",
+    "gapHeading": "Why a shade map",
+    "gapBody": "The City of Boston already runs a map of indoor cooling resources — pools, splash pads, libraries, cooling centres. Every layer on it is an indoor or water facility. There is no shade data on it anywhere, and Boston has published no shade map. That is the gap this fills. Shade is what you need on the walk to the cooling centre, not after you arrive.",
+    "methodHeading": "How the shade is worked out",
+    "methodBody": "For any moment, we compute where the sun is, then project a shadow from every building footprint and street tree in the neighbourhood. Building heights come from the City's roof-break dataset. Shadow length is the object's height divided by the tangent of the sun's angle above the horizon.",
+    "readingsHeading": "The field readings",
+    "readingsBody": "A crew of six measured paired sun and shade surface temperatures with an infrared thermometer at locations across Chinatown, recording the surface, what was casting the shade, and a photo. Where a reading disagrees with the model, both are shown. The readings are the ground truth.",
+    "limitsHeading": "What this map does not do",
+    "limitsIntro": "This is a flat-ground approximation, and it is worth being plain about its limits:",
+    "limitTerrain": "It ignores slope and treats all ground as flat.",
+    "limitStructures": "It does not model awnings, scaffolding, overhangs or bus shelters — all of which cast real shade on a real sidewalk.",
+    "limitTrees": "Tree crowns are modelled as opaque circles. That overstates dense shade and understates dappled shade. Tree shadows are drawn lighter on the map for this reason.",
+    "limitTreeData": "The City's tree layer records trunk diameter but not crown size or height, so crown and height are estimated from trunk diameter, not measured.",
+    "limitHeights": "{skipped} of {total} building footprints have no usable height in the source data. Those are left out of the model rather than guessed at.",
+    "limitSeason": "The model ships with precomputed shadows for the equinoxes and solstices. A summer validation pass against field readings is planned for 2027 — it has not happened yet.",
+    "sourcesHeading": "Data sources",
+    "sourceTrees": "Street and park trees",
+    "sourceBuildings": "Building footprints and heights",
+    "sourceCity": "City of Boston cooling resources map",
+    "privacyHeading": "Privacy",
+    "privacyBody": "No accounts, no tracking, no third-party analytics. The only cookie remembers your language. Observer names are recorded as a first name only, and location is captured only at the moment a reading is taken.",
+    "contactHeading": "Contact"
+  },
+  "print": {
+    "heading": "Shade sheet",
+    "morning": "9am",
+    "midday": "12pm",
+    "afternoon": "3pm",
+    "scanForMore": "Scan for the live map",
+    "printedOn": "Printed"
+  },
+  "common": {
+    "notFound": "Page not found",
+    "notFoundBody": "That page does not exist.",
+    "backHome": "Back to the start",
+    "loading": "Loading…"
+  }
+}
