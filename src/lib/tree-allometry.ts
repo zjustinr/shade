@@ -36,6 +36,12 @@ const MAX_CROWN_RADIUS_M = 12;
 export const DEFAULT_CROWN_RADIUS_M = 4;
 export const DEFAULT_TREE_HEIGHT_M = 8;
 
+/** Stated on /about so the assumption is visible to anyone reading the map. */
+export const CROWN_ALLOMETRY_NOTE =
+  "Crown spread is estimated at roughly 1.75 feet per inch of trunk diameter and " +
+  "clamped between 1.5 m and 12 m; height is estimated from the same measurement " +
+  "and clamped between 4 m and 18 m.";
+
 const MIN_TREE_HEIGHT_M = 4;
 const MAX_TREE_HEIGHT_M = 18;
 const HEIGHT_BASE_M = 4;
