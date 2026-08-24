@@ -1,0 +1,28 @@
+[
+  {
+    "nameEn": "PLACEHOLDER — Cooling Corner 1",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3508,
+    "lng": -71.0619,
+    "descriptionEn": "Placeholder row. Replace with the first installation once it is built: what was planted, what seating was added, and who built it.",
+    "descriptionZh": null,
+    "descriptionVi": null,
+    "hasSeating": true,
+    "installedOn": null,
+    "photoUrl": null
+  },
+  {
+    "nameEn": "PLACEHOLDER — Cooling Corner 2",
+    "nameZh": null,
+    "nameVi": null,
+    "lat": 42.3496,
+    "lng": -71.0596,
+    "descriptionEn": "Placeholder row. Replace with the second installation once it is built.",
+    "descriptionZh": null,
+    "descriptionVi": null,
+    "hasSeating": false,
+    "installedOn": null,
+    "photoUrl": null
+  }
+]

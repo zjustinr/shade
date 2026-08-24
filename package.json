@@ -19,7 +19,8 @@
     "predev": "npm run copy:worker",
     "smoke:map": "node scripts/smoke-map.mjs",
     "postbuild": "tsx scripts/check-service-worker.ts",
-    "smoke:offline": "node scripts/smoke-offline.mjs"
+    "smoke:offline": "node scripts/smoke-offline.mjs",
+    "seed:corners": "tsx scripts/seed-corners.ts"
   },
   "dependencies": {
     "@turf/turf": "^7.4.0",
