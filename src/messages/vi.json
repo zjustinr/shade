@@ -45,7 +45,8 @@
     "legendBuilding": "Bóng toà nhà",
     "legendTree": "Bóng cây (độ chắc chắn thấp hơn)",
     "legendReading": "Số liệu đo thực địa",
-    "legendCorner": "Góc Mát"
+    "legendCorner": "Góc Mát",
+    "blockSheets": "Bảng in theo dãy phố"
   },
   "disclaimer": {
     "short": "Bóng mát ước tính. Chỉ tính toà nhà và cây xanh — không bao gồm mái hiên, giàn giáo và nhà chờ. Đã đối chiếu bằng đo đạc thực địa tại 60 địa điểm.",
@@ -114,7 +115,8 @@
     "midday": "12 giờ trưa",
     "afternoon": "3 giờ chiều",
     "scanForMore": "Quét để xem bản đồ trực tuyến",
-    "printedOn": "Ngày in"
+    "printedOn": "Ngày in",
+    "blockSheets": "Bảng in theo dãy phố"
   },
   "common": {
     "notFound": "Không tìm thấy trang",

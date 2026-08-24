@@ -48,3 +48,37 @@ body {
 .hc :focus-visible {
   outline-color: #fde047;
 }
+
+/*
+ * §7 /print/[block]: the paper sheet is the channel that reaches the
+ * residents the app does not, so it gets the whole page — site chrome off,
+ * one sheet, ink-economical.
+ */
+@media print {
+  body:has(.print-sheet) > header,
+  body:has(.print-sheet) > footer,
+  body:has(.print-sheet) > aside,
+  body:has(.print-sheet) a[href="#main"] {
+    display: none !important;
+  }
+
+  .print-sheet {
+    max-width: none;
+    padding: 0;
+  }
+
+  .print-sheet figure {
+    break-inside: avoid;
+  }
+
+  @page {
+    size: letter portrait;
+    margin: 12mm;
+  }
+
+  /* Keep the shade fills from being dropped as "background graphics". */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

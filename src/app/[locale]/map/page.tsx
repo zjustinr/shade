@@ -6,6 +6,8 @@ import { ShadeMap } from "@/components/shade-map";
 import { ShadeDisclaimer } from "@/components/shade-disclaimer";
 import { CityCoolingLink } from "@/components/city-cooling-link";
 import { ReadingsTextFallback } from "@/components/readings-text-fallback";
+import { Link } from "@/i18n/navigation";
+import { BLOCKS } from "@/lib/blocks";
 import { getPublicReadings } from "@/lib/public-readings";
 import { getPublicCorners } from "@/lib/public-corners";
 import type { ShadeIndex } from "@/lib/shade-index";
@@ -65,6 +67,24 @@ export default async function MapPage({
       <div className="mt-6">
         <CityCoolingLink />
       </div>
+
+      {/* §0: paper is the channel that reaches the residents the app does
+          not, so the printable sheets are linked from the map itself. */}
+      <section className="mt-8">
+        <h2 className="text-xl font-semibold">{t("blockSheets")}</h2>
+        <ul className="mt-2 flex flex-wrap gap-2">
+          {BLOCKS.map((block) => (
+            <li key={block.code}>
+              <Link
+                href={`/print/${block.code}`}
+                className="inline-flex min-h-[44px] items-center rounded-lg border border-neutral-300 px-4 underline-offset-4 hover:underline"
+              >
+                {block.nameEn}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {/* §10 Accessibility: the map must have a non-map fallback — a text
           list of sites with their readings. */}

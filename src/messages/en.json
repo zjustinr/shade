@@ -39,7 +39,8 @@
     "legendBuilding": "Building shadow",
     "legendTree": "Tree shadow (less certain)",
     "legendReading": "Field reading",
-    "legendCorner": "Cool Corner"
+    "legendCorner": "Cool Corner",
+    "blockSheets": "Printable block sheets"
   },
   "disclaimer": {
     "short": "Modelled shade. Buildings and trees only — awnings, scaffolding and shelters are not included. Verified by field measurement at 60 locations.",
@@ -108,7 +109,8 @@
     "midday": "12pm",
     "afternoon": "3pm",
     "scanForMore": "Scan for the live map",
-    "printedOn": "Printed"
+    "printedOn": "Printed",
+    "blockSheets": "Printable block sheets"
   },
   "common": {
     "notFound": "Page not found",

@@ -45,7 +45,8 @@
     "legendBuilding": "樓宇陰影",
     "legendTree": "樹木陰影（準確度較低）",
     "legendReading": "實地測量",
-    "legendCorner": "清涼角落"
+    "legendCorner": "清涼角落",
+    "blockSheets": "可列印街區資料表"
   },
   "disclaimer": {
     "short": "此為推算遮蔭，僅計算樓宇與樹木，不包括遮篷、棚架及候車亭。已於 60 個地點以實地測量核對。",
@@ -114,7 +115,8 @@
     "midday": "中午 12 時",
     "afternoon": "下午 3 時",
     "scanForMore": "掃描查看即時地圖",
-    "printedOn": "列印日期"
+    "printedOn": "列印日期",
+    "blockSheets": "可列印街區資料表"
   },
   "common": {
     "notFound": "找不到頁面",
