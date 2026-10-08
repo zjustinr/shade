@@ -5,6 +5,14 @@ import withPWAInit from "next-pwa";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /**
+ * IOS_BUILD=1 switches the build to a fully static export of the public
+ * app, which scripts/build-ios.ts wraps in Capacitor for the App Store.
+ * The service worker is disabled there: WKWebView does not run service
+ * workers for a packaged app, and the bundle IS the offline cache.
+ */
+const isIosBuild = process.env.IOS_BUILD === "1";
+
+/**
  * next-pwa hooks Next's webpack config, so the build must run with
  * --webpack (see the build script). Under Turbopack the hook simply never
  * runs: the build succeeds and silently emits no service worker at all,
@@ -17,7 +25,7 @@ const withPWA = withPWAInit({
   register: false, // registered explicitly; see RegisterServiceWorker
   skipWaiting: true,
   // A service worker in dev caches stale chunks and makes HMR confusing.
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === "development" || isIosBuild,
   runtimeCaching: [
     {
       // Precomputed shade slots never change for a given date and time, so
@@ -94,6 +102,14 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   // §10 Privacy: nothing here may send user data off-origin.
   poweredByHeader: false,
+  ...(isIosBuild
+    ? {
+        output: "export" as const,
+        // Folder-per-route (en/map/index.html) so Capacitor's local file
+        // server resolves extensionless navigation.
+        trailingSlash: true,
+      }
+    : {}),
 };
 
 export default withPWA(withNextIntl(nextConfig) as never) as NextConfig;

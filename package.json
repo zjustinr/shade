@@ -26,9 +26,12 @@
     "verify:network": "tsx scripts/verify-network.ts",
     "build:exposure": "tsx scripts/build-exposure.ts",
     "extract:destinations": "tsx scripts/extract-destinations.ts",
-    "smoke:routes": "node scripts/smoke-routes.mjs"
+    "smoke:routes": "node scripts/smoke-routes.mjs",
+    "build:ios": "tsx scripts/build-ios.ts"
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "@turf/turf": "^7.4.0",
     "@vercel/blob": "^2.8.0",
     "drizzle-orm": "^0.45.2",
@@ -46,6 +49,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@tailwindcss/postcss": "^4",
     "@types/next-pwa": "^5.6.9",
     "@types/node": "^20",

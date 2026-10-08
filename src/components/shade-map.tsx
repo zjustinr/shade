@@ -86,8 +86,8 @@ const DEFAULT_CATEGORIES: Record<DestinationCategory, boolean> = {
 
 export function ShadeMap({
   index,
-  readings,
-  corners,
+  readings: initialReadings,
+  corners: initialCorners,
 }: {
   index: ShadeIndex;
   readings: PublicReading[];
@@ -97,6 +97,37 @@ export function ShadeMap({
   const tDest = useTranslations("destinations");
   const tRoute = useTranslations("route");
   const locale = useLocale();
+
+  /**
+   * Server-rendered data is the starting point, then one runtime fetch
+   * brings it current. On the website this closes the gap left by the
+   * 5-minute page cache; in the iOS app it is the only source of fresh
+   * readings at all — the bundle is static files frozen at build time
+   * (NEXT_PUBLIC_API_BASE points those requests at the live site). A
+   * failed fetch keeps whatever we have: offline, baked data beats none.
+   */
+  const [readings, setReadings] = useState(initialReadings);
+  const [corners, setCorners] = useState(initialCorners);
+  useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_BASE ?? "";
+    let cancelled = false;
+    const refresh = async <T,>(path: string, apply: (rows: T[]) => void) => {
+      try {
+        const res = await fetch(`${base}${path}`);
+        if (!res.ok) return;
+        const rows = (await res.json()) as T[];
+        if (!cancelled && Array.isArray(rows)) apply(rows);
+      } catch {
+        // Offline or the API is unreachable — the baked data stands.
+      }
+    };
+    void refresh<PublicReading>("/api/public/readings", setReadings);
+    void refresh<PublicCorner>(`/api/public/corners?locale=${locale}`, setCorners);
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   // The loaded map instance, not a boolean. React StrictMode mounts effects

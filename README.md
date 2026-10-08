@@ -79,6 +79,7 @@ computation. The City APIs are never called at request time.
 | `npm run smoke:map` | Browser test: are shadows actually painted? |
 | `npm run smoke:offline` | Browser test: airplane-mode field capture |
 | `npm run smoke:routes` | Browser test: destinations + shaded route planner |
+| `npm run build:ios` | Static export of the public app for the iOS (Capacitor) shell |
 | `npm run lint` | ESLint |
 
 The browser smoke tests need a built app running:
@@ -89,6 +90,14 @@ npm run smoke:map
 PORT=3555 npm run smoke:offline
 PORT=3555 npm run smoke:routes
 ```
+
+## iOS app
+
+The public app also ships as an iPhone app: a Capacitor shell around a
+fully static export that works offline and refreshes readings from the
+production API. `npm run build:ios` produces the bundle; everything else —
+Mac setup, App Store submission, review strategy, the $99/yr caveat — is
+in `docs/ios-app-store.md`. The Field Tool stays web-only on purpose.
 
 ## Things that will bite you
 
