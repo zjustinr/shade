@@ -17,17 +17,33 @@ crew-facing fixes ship same-day instead of waiting on App Review.
   project that breaks SPEC §10's "no service requiring a credit card" rule,
   and SPEC §2 listed native apps as out of scope — shipping this is a
   deliberate scope decision, so make sure the grant reporting reflects it.
-- **A Mac with Xcode 16+ is required** to build, test and upload. There is
-  no way around this; everything below assumes one.
+- **A Mac with Xcode 26 or later is required** to build, test and upload.
+  Since 28 April 2026 App Store Connect rejects uploads built with an older
+  SDK before review even starts. Xcode 26.0 needs macOS Sequoia 15.6+;
+  Xcode 26.4 and later need macOS Tahoe 26.2+ — check the Mac's macOS
+  version before downloading anything. There is no way around needing a
+  Mac; everything below assumes one.
 - App releases go through App Review (typically 1–2 days). The website
   stays the place where fixes land immediately.
 
 ## One-time setup (Mac)
 
 1. Install Xcode from the App Store, then `xcode-select --install`.
-2. Enroll at developer.apple.com ($99/yr). Personal enrollment is fine;
-   a nonprofit fiscal sponsor can also enroll as an organization (and may
-   qualify for a fee waiver — Apple waives it for nonprofits in the US).
+2. Enroll in the Apple Developer Program at developer.apple.com ($99/yr).
+   Choose the account type deliberately, because it decides whose name the
+   App Store shows as the seller:
+   - **Individual** — no legal entity or D-U-N-S number needed; usually
+     approved in days; the seller is a person's name.
+   - **Organization** — needs a legal entity and a D-U-N-S number (free
+     from Dun & Bradstreet, up to ~30 days if the organization has none);
+     the seller is the organization. Registered nonprofits can request a
+     fee waiver during enrollment; reportedly it only applies to
+     organization accounts distributing free apps with no in-app
+     purchases (this app qualifies on the second count) — confirm on
+     Apple's fee-waiver page before counting on it.
+   You can start building and running in the Simulator with only a free
+   Apple ID while enrollment is pending; TestFlight and submission need
+   the paid program.
 3. Clone the repo, `npm install`.
 4. **Decide the bundle id once.** `capacitor.config.ts` ships with
    `org.chinatowncoolcorners.app` as a placeholder. Whatever you pick
