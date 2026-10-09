@@ -46,7 +46,8 @@
     "legendTree": "樹木陰影（準確度較低）",
     "legendReading": "實地測量",
     "legendCorner": "清涼角落",
-    "blockSheets": "可列印街區資料表"
+    "blockSheets": "可列印街區資料表",
+    "now": "現在"
   },
   "disclaimer": {
     "short": "此為推算遮蔭，僅計算樓宇與樹木，不包括遮篷、棚架及候車亭。已於 60 個地點以實地測量核對。",
@@ -166,6 +167,10 @@
     "shadiest": "最多遮蔭",
     "quickest": "最快",
     "disclaimer": "路線根據市政府人行道資料及推算遮蔭計算。實際出行前請留意路面情況——路口、施工及遮篷並未納入模型。",
-    "selected": "地圖上顯示"
+    "selected": "地圖上顯示",
+    "prefSun": "陽光最多",
+    "sunniest": "最多陽光",
+    "inSun": "在陽光下",
+    "segmentLegend": "在選定的路線上，琥珀色標示陽光路段。"
   }
 }

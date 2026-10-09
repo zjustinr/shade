@@ -46,7 +46,8 @@
     "legendTree": "Bóng cây (độ chắc chắn thấp hơn)",
     "legendReading": "Số liệu đo thực địa",
     "legendCorner": "Góc Mát",
-    "blockSheets": "Bảng in theo dãy phố"
+    "blockSheets": "Bảng in theo dãy phố",
+    "now": "Bây giờ"
   },
   "disclaimer": {
     "short": "Bóng mát ước tính. Chỉ tính toà nhà và cây xanh — không bao gồm mái hiên, giàn giáo và nhà chờ. Đã đối chiếu bằng đo đạc thực địa tại 60 địa điểm.",
@@ -166,6 +167,10 @@
     "shadiest": "Nhiều bóng mát nhất",
     "quickest": "Nhanh nhất",
     "disclaimer": "Lộ trình dựa trên dữ liệu vỉa hè của Thành phố và bóng mát ước tính. Hãy quan sát thực tế trước khi tin tưởng hoàn toàn — lối qua đường, công trình đang thi công và mái hiên không được mô phỏng.",
-    "selected": "Đang hiển thị"
+    "selected": "Đang hiển thị",
+    "prefSun": "Nhiều nắng nhất",
+    "sunniest": "Nhiều nắng nhất",
+    "inSun": "dưới nắng",
+    "segmentLegend": "Trên lộ trình được chọn, màu hổ phách đánh dấu các đoạn có nắng."
   }
 }

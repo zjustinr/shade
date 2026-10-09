@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, isDatabaseConfigured } from "@/db";
 
 // One row per site that has at least one reading, with whether any of its
 // readings are flagged. Powers the "N of 60 sites complete" coverage view.
 export async function GET() {
+  if (!isDatabaseConfigured()) return NextResponse.json([]);
   const rows = await db.execute<{ site_id: number; flagged: boolean }>(sql`
     select site_id, bool_or(flagged) as flagged
     from readings

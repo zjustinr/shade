@@ -13,6 +13,9 @@
  * Usage:
  *   npm run build && npx next start -p 3888
  *   CREW_PASSCODE=... node scripts/smoke-offline.mjs
+ *
+ * Requires a server started with CREW_PASSCODE and a real POSTGRES_URL —
+ * the sync half of the test writes a reading through the API.
  */
 import { chromium } from "playwright";
 

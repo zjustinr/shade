@@ -40,7 +40,8 @@
     "legendTree": "Tree shadow (less certain)",
     "legendReading": "Field reading",
     "legendCorner": "Cool Corner",
-    "blockSheets": "Printable block sheets"
+    "blockSheets": "Printable block sheets",
+    "now": "Now"
   },
   "disclaimer": {
     "short": "Modelled shade. Buildings and trees only — awnings, scaffolding and shelters are not included. Verified by field measurement at 60 locations.",
@@ -160,6 +161,10 @@
     "shadiest": "Shadiest",
     "quickest": "Quickest",
     "disclaimer": "Routes follow City sidewalk data and modelled shade. Check the street before you rely on it — crossings, construction and awnings are not modelled.",
-    "selected": "On the map"
+    "selected": "On the map",
+    "prefSun": "Most sun",
+    "sunniest": "Sunniest",
+    "inSun": "in sun",
+    "segmentLegend": "On the highlighted route, amber marks the stretches in sun."
   }
 }

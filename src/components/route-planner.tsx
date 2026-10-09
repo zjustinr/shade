@@ -12,7 +12,7 @@ export type RoutePoint = {
   label: string;
 };
 
-export type PlannerPreference = "shade" | "balanced" | "shortest";
+export type PlannerPreference = "shade" | "sun" | "balanced" | "shortest";
 
 export function RoutePlanner({
   start,
@@ -168,6 +168,7 @@ export function RoutePlanner({
           {(
             [
               ["shade", t("prefShade")],
+              ["sun", t("prefSun")],
               ["balanced", t("prefBalanced")],
               ["shortest", t("prefShortest")],
             ] as const
@@ -200,6 +201,9 @@ export function RoutePlanner({
 
       <div className="mt-4">
         <h3 className="text-sm font-semibold">{t("results")}</h3>
+        {routes.length > 0 ? (
+          <p className="mt-0.5 text-xs text-neutral-600">{t("segmentLegend")}</p>
+        ) : null}
         {!start || !end ? (
           <p className="mt-1 text-sm text-neutral-600">{t("needBoth")}</p>
         ) : loading ? (
@@ -209,9 +213,11 @@ export function RoutePlanner({
         ) : (
           <ul className="mt-2 flex flex-col gap-2">
             {routes.map((route, i) => {
-              const shadiest = i === 0;
+              const seekingSun = preference === "sun";
+              const best = i === 0; // routes arrive sorted best-first for the preference
               const quickest =
                 route.distanceM === Math.min(...routes.map((r) => r.distanceM));
+              const sunPercent = 100 - route.shadePercent;
               const colour = routeColour(i);
               const selected = selectedRoute === i;
               return (
@@ -252,7 +258,7 @@ export function RoutePlanner({
                           {t("selected")}
                         </span>
                       ) : null}
-                      {shadiest ? <Tag>{t("shadiest")}</Tag> : null}
+                      {best ? <Tag>{seekingSun ? t("sunniest") : t("shadiest")}</Tag> : null}
                       {quickest ? <Tag>{t("quickest")}</Tag> : null}
                     </div>
                     {/* A definition list rather than bare spans: each figure
@@ -261,10 +267,12 @@ export function RoutePlanner({
                         instead of running the three numbers together. */}
                     <dl className="mt-1 flex flex-wrap gap-x-4 text-sm">
                       <div data-stat="shade">
-                        <dt className="sr-only">{t("inShade")}</dt>
+                        <dt className="sr-only">{seekingSun ? t("inSun") : t("inShade")}</dt>
                         <dd className="font-bold tabular-nums">
-                          {Math.round(route.shadePercent)}%{" "}
-                          <span className="font-normal">{t("inShade")}</span>
+                          {Math.round(seekingSun ? sunPercent : route.shadePercent)}%{" "}
+                          <span className="font-normal">
+                            {seekingSun ? t("inSun") : t("inShade")}
+                          </span>
                         </dd>
                       </div>
                       <div data-stat="distance">
@@ -284,12 +292,16 @@ export function RoutePlanner({
                     {/* A bar makes the shade share comparable at a glance,
                         which is the whole decision this screen supports. */}
                     <div
-                      className="mt-1 h-2 w-full overflow-hidden rounded-full bg-amber-200"
+                      className={`mt-1 h-2 w-full overflow-hidden rounded-full ${
+                        seekingSun ? "bg-neutral-300" : "bg-amber-200"
+                      }`}
                       aria-hidden
                     >
                       <div
-                        className="h-full bg-neutral-700"
-                        style={{ width: `${route.shadePercent}%` }}
+                        className={seekingSun ? "h-full bg-amber-400" : "h-full bg-neutral-700"}
+                        style={{
+                          width: `${seekingSun ? sunPercent : route.shadePercent}%`,
+                        }}
                       />
                     </div>
                   </button>

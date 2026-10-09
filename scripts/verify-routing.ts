@@ -175,6 +175,49 @@ console.log("\nShade costs a detour (shaded path is longer)");
   );
 }
 
+console.log("\nWinter mode: seeking sun instead of shade");
+{
+  // Invert the corridor scenario: everything is shaded except one sunny
+  // L-shaped corridor along the left column and top row. A winter walker
+  // seeking sun should follow it; a shade-seeker should avoid it.
+  const exposure = new Array(grid.edges.length).fill(0);
+  grid.edges.forEach((edge, i) => {
+    const colA = edge.a % N;
+    const colB = edge.b % N;
+    const rowA = Math.floor(edge.a / N);
+    const rowB = Math.floor(edge.b / N);
+    const alongLeft = colA === 0 && colB === 0;
+    const alongTop = rowA === N - 1 && rowB === N - 1;
+    if (alongLeft || alongTop) exposure[i] = 100;
+  });
+
+  const sunRoutes = planRoutes(grid, exposure, start, goal, [1, 0.5, 0], 3, "sun");
+  check("returns at least 3 routes when seeking sun", sunRoutes.length >= 3, `(got ${sunRoutes.length})`);
+
+  const sunniest = sunRoutes[0];
+  check(
+    "sun preference finds the sunny corridor",
+    sunniest.shadePercent < 10,
+    `(top route ${sunniest.shadePercent.toFixed(1)}% shade)`,
+  );
+  check(
+    "routes are sorted sunniest first when seeking sun",
+    sunRoutes.every((r, i) => i === 0 || r.shadePercent >= sunRoutes[i - 1].shadePercent),
+  );
+
+  const shadeRoutes = planRoutes(grid, exposure, start, goal, [1, 0.5, 0], 3, "shade");
+  check(
+    "the same streets answer the summer question too",
+    shadeRoutes[0].shadePercent > sunniest.shadePercent + 50,
+    `(shade-seek top ${shadeRoutes[0].shadePercent.toFixed(0)}% vs sun-seek top ${sunniest.shadePercent.toFixed(0)}%)`,
+  );
+  check(
+    "winter detour stays bounded",
+    sunniest.distanceM < idealShortest * 2.0,
+    `(${sunniest.distanceM.toFixed(0)}m vs minimum ${idealShortest.toFixed(0)}m)`,
+  );
+}
+
 console.log("\nAlternatives are genuinely different");
 {
   const exposure = new Array(grid.edges.length).fill(50);

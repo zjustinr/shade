@@ -110,17 +110,19 @@ review notes should spell that out:
 If a reviewer still flags 4.2, the strongest follow-up is a short video of
 the planner working in airplane mode.
 
-### Suggested store metadata
+### Store metadata
 
-- **Name:** Cool Corners — Chinatown Shade *(30-char limit: "Cool
-  Corners: Chinatown Shade")*
-- **Subtitle:** Shaded walking routes in Boston Chinatown
-- **Keywords:** shade,heat,walking,routes,Boston,Chinatown,唐人街,bóng mát
-- Localize the store listing for `zh-Hant` and `vi` — the catalogs in
-  `src/messages/` already contain reviewed translations to draw from, and
-  an English-only listing would undercut the project's whole point (§8).
-- **Screenshots:** map with shade at 3pm; planner showing the three
-  routes; destinations layer; one screenshot per language.
+Ready-to-paste, research-grounded listing copy for all three locales —
+name, subtitle, keywords, promotional text, full descriptions, and the
+screenshot plan — lives in **docs/store-listing.md**. The short version of
+the strategy it encodes: anchor on the uncontested "shade / shaded walk /
+cool walk" keyword family and stay off "sun position"/"sun tracker" (six
+4.7★+ incumbents); put "free — no ads, no accounts, nothing collected" in
+the first lines; localize the listing itself in Traditional Chinese and
+Vietnamese (no competitor does); and treat heat-wave press, not search, as
+the discovery channel. The zh-Hant/vi copy must pass community-translator
+review before it goes into App Store Connect (§8), and no edit may ever
+present the app as a cooling-centers directory (§0).
 
 ## Honesty notes (§0, §6 — they apply in the store too)
 
@@ -134,6 +136,46 @@ the planner working in airplane mode.
   readings baked at build time when offline; the map itself refreshes
   live. Rebuild and resubmit occasionally during a field campaign so the
   baked data doesn't lag months behind.
+
+## Feature roadmap borrowed from the field
+
+A study of Korea's Geuneullo — the one shade-routing app with proven mass
+adoption (notes: research_notes/Shade and cooling app landscape/
+geuneullo-feature-study.md; the folder is gitignored, regenerate via the
+session that produced it or keep a copy) — sorted its features into three
+buckets for this app:
+
+**Adopted already:** departure time defaults to "now" with a one-tap Now
+button (their core mechanic: you plan the walk you are about to take);
+per-segment sun marking on the chosen route (amber ticks over the sunny
+stretches); %-shade per route; time slider re-ranking routes; winter sun
+mode (their users walk the sunny side in winter too — our precomputed
+winter-solstice exposure made the flip nearly free).
+
+**Worth doing next, in order:**
+1. Live "remaining shade ahead" while walking a chosen route (they show
+   remaining distance/time/shade during the walk) — needs only geolocation
+   at walk time, opt-in, never tracked (§10).
+2. Saved places — the three places an elder actually walks to, stored
+   locally on the phone, no account (they ship favorites with no sign-up).
+3. Crosswalk/stairs/slope flags on route cards — our network already
+   distinguishes crosswalk types; slope needs City elevation data.
+4. Route-to-cooling-sites: City/MAPC cooling locations as destinations
+   with a "call 311 to confirm hours" affordance — complement by
+   reference, never re-list (§0). Their heat-shelter layer validates the
+   demand; the City map stays the source of truth.
+
+**Noted and deliberately not doing:** transit seat-side suggestions (no
+usable Boston transit heading data, and off-mission), server-side shade
+computation (theirs crashed at 20k users/day; our static files cannot),
+night-safety routing (different mission), ads (their listing's one sour
+note — declared ad tracking on a "free, no monetization" app; ours
+collects nothing and says so).
+
+One process lesson worth copying outright: the developer replies to App
+Store reviews and ships small requested fixes within days — their night
+mode came from a middle schooler's review. With the Claude Code release
+loop, this project can match that cadence.
 
 ## Updating the app
 

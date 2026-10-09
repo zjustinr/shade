@@ -29,7 +29,7 @@ import {
   DESTINATION_CATEGORIES,
   type DestinationCategory,
 } from "@/lib/destinations";
-import { nearestNode } from "@/lib/network";
+import { edgeLine, nearestNode } from "@/lib/network";
 import { planRoutes, type Route } from "@/lib/routing";
 import { useExposure, useRouteData } from "@/lib/use-route-data";
 import { badgeFraction, pointAlong, routeColour } from "@/lib/route-style";
@@ -50,6 +50,15 @@ const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
  */
 setWorkerUrl("/maplibre-gl-worker.mjs");
 
+function nowSliderMinutes(index: ShadeIndex): number {
+  const now = new Date();
+  const snapped =
+    Math.round((now.getHours() * 60 + now.getMinutes()) / index.stepMinutes) *
+    index.stepMinutes;
+  if (snapped < index.startHour * 60 || snapped > index.endHour * 60) return 15 * 60;
+  return snapped;
+}
+
 type LayerKey = "shade" | "trees" | "readings" | "corners" | "destinations";
 
 /** Preference -> the shade weights fed to the planner. Every preference
@@ -57,6 +66,9 @@ type LayerKey = "shade" | "trees" | "readings" | "corners" | "destinations";
  *  what the search optimises for first. */
 const PREFERENCE_WEIGHTS: Record<PlannerPreference, number[]> = {
   shade: [1, 0.6, 0.2],
+  // Winter mode: identical weights, but the planner seeks sun instead of
+  // shade — the warmest walk on a cold day is the sunniest one.
+  sun: [1, 0.6, 0.2],
   balanced: [0.6, 1, 0.2],
   shortest: [0, 0.4, 0.9],
 };
@@ -137,7 +149,11 @@ export function ShadeMap({
   // would render empty. Keying on instance identity makes them re-run.
   const [map, setMap] = useState<MapLibreMap | null>(null);
 
-  const [minutes, setMinutes] = useState(15 * 60); // 3pm — the hottest hour
+  // Departure time defaults to "now": people plan the walk they are about
+  // to take (the lesson from Korea's Geuneullo, where time-of-departure is
+  // the core control). Outside the slider's day, fall back to 3pm — the
+  // hottest hour and the most instructive one to browse.
+  const [minutes, setMinutes] = useState(() => nowSliderMinutes(index));
   const [dateKey, setDateKey] = useState(
     () => nearestShadeDate(new Date(), index).dateKey,
   );
@@ -145,7 +161,12 @@ export function ShadeMap({
   const [start, setStart] = useState<RoutePoint | null>(null);
   const [end, setEnd] = useState<RoutePoint | null>(null);
   const [picking, setPicking] = useState<"start" | "end" | null>(null);
-  const [preference, setPreference] = useState<PlannerPreference>("shade");
+  // Season decides the default ask: shade in the hot months, sun in the
+  // cold ones (the same model answers both). Only the default — an explicit
+  // choice of balanced/shortest is never overridden.
+  const [preference, setPreference] = useState<PlannerPreference>(() =>
+    nearestShadeDate(new Date(), index).dateKey === "winter-solstice" ? "sun" : "shade",
+  );
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [categories, setCategories] =
     useState<Record<DestinationCategory, boolean>>(DEFAULT_CATEGORIES);
@@ -185,7 +206,15 @@ export function ShadeMap({
     if (!planning || !network || !exposure || !start || !end) return [];
     const a = nearestNode(network, [start.lng, start.lat]);
     const b = nearestNode(network, [end.lng, end.lat]);
-    return planRoutes(network, exposure, a, b, PREFERENCE_WEIGHTS[preference]);
+    return planRoutes(
+      network,
+      exposure,
+      a,
+      b,
+      PREFERENCE_WEIGHTS[preference],
+      3,
+      preference === "sun" ? "sun" : "shade",
+    );
   }, [planning, network, exposure, start, end, preference]);
 
   // Clamp rather than sync: when the route list changes underneath a stale
@@ -221,6 +250,7 @@ export function ShadeMap({
         data: "/data/destinations.geojson",
       });
       map.addSource("routes", { type: "geojson", data: EMPTY });
+      map.addSource("route-sun", { type: "geojson", data: EMPTY });
       map.addSource("route-ends", { type: "geojson", data: EMPTY });
 
       map.addLayer({
@@ -283,6 +313,24 @@ export function ShadeMap({
         filter: ["==", ["get", "selected"], true],
         layout: { "line-cap": "round", "line-join": "round" },
         paint: { "line-color": ["get", "color"], "line-width": 7 },
+      });
+      // Amber ticks over the stretches of the chosen route that are in sun
+      // at the selected time — "which part of this walk is the sunny part"
+      // is the per-segment view Geuneullo showed people actually use.
+      map.addLayer({
+        id: "route-sun-segments",
+        type: "line",
+        source: "route-sun",
+        layout: { "line-cap": "butt", "line-join": "round" },
+        paint: {
+          "line-color": "#f59e0b",
+          "line-width": 3.5,
+          "line-dasharray": [1.2, 1.4],
+          // Graded, not binary: a half-sunny stretch shows faintly, a fully
+          // sunlit one strongly. A hard >50% cut hid almost half the real
+          // sun on partially-exposed edges.
+          "line-opacity": ["interpolate", ["linear"], ["get", "sun"], 25, 0.35, 100, 1],
+        },
       });
 
       map.addLayer({
@@ -585,6 +633,31 @@ export function ShadeMap({
     });
   }, [map, routes, activeRoute]);
 
+  // The selected route's sunny stretches, as separate segments for the
+  // amber overlay. Exposure is per edge, so this is a lookup, not geometry
+  // work.
+  useEffect(() => {
+    const source = map?.getSource("route-sun") as GeoJSONSource | undefined;
+    if (!source) return;
+    const route = routes[activeRoute];
+    if (!route || !network || !exposure) {
+      source.setData(EMPTY);
+      return;
+    }
+    const features = route.edges
+      .map((edgeIndex, i) => ({ edgeIndex, fromNode: route.nodes[i] }))
+      .filter(({ edgeIndex }) => (exposure[edgeIndex] ?? 0) > 25)
+      .map(({ edgeIndex, fromNode }) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "LineString" as const,
+          coordinates: edgeLine(network, edgeIndex, fromNode),
+        },
+        properties: { sun: exposure[edgeIndex] ?? 0 },
+      }));
+    source.setData({ type: "FeatureCollection", features });
+  }, [map, routes, activeRoute, network, exposure]);
+
   useEffect(() => {
     const source = map?.getSource("route-ends") as GeoJSONSource | undefined;
     const points = [
@@ -640,8 +713,17 @@ export function ShadeMap({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1">
-          <span className="font-semibold">
-            {t("timeOfDay")}: <span className="tabular-nums">{timeLabel}</span>
+          <span className="flex items-center gap-2 font-semibold">
+            <span>
+              {t("timeOfDay")}: <span className="tabular-nums">{timeLabel}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setMinutes(nowSliderMinutes(index))}
+              className="rounded-md border border-neutral-300 px-2 py-0.5 text-sm font-medium"
+            >
+              {t("now")}
+            </button>
           </span>
           <input
             type="range"
@@ -658,7 +740,17 @@ export function ShadeMap({
           <span className="font-semibold">{t("date")}</span>
           <select
             value={dateKey}
-            onChange={(e) => setDateKey(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setDateKey(next);
+              // Flip the seasonal default with the season, but leave an
+              // explicit balanced/shortest choice alone.
+              if (next === "winter-solstice" && preference === "shade") {
+                setPreference("sun");
+              } else if (next !== "winter-solstice" && preference === "sun") {
+                setPreference("shade");
+              }
+            }}
             className="h-11 rounded-lg border border-neutral-300 px-3"
           >
             {index.dates.map((d) => (

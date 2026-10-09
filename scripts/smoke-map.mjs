@@ -125,7 +125,20 @@ if (mapRenderable) {
 }
 
 check("time slider present", (await page.locator('input[type="range"]').count()) === 1);
-check("four layer toggles present", (await page.locator('input[type="checkbox"]').count()) === 4);
+// Five layer toggles since the destinations layer landed; assert them by
+// name so adding category filters doesn't silently break the count.
+for (const layer of [
+  "Modelled shade",
+  "Street trees",
+  "Field readings",
+  "Cool Corners",
+  "Places to walk to",
+]) {
+  check(
+    `layer toggle present: ${layer}`,
+    (await page.getByRole("checkbox", { name: layer }).count()) === 1,
+  );
+}
 check(
   "outbound City cooling link present",
   (await page.locator('a[href*="experience.arcgis.com"]').count()) > 0,
@@ -134,7 +147,14 @@ check(
   "disclaimer shown in all three languages",
   (await page.locator("aside li[lang]").count()) === 3,
 );
-check("non-map text fallback present", (await page.locator("table").count()) > 0);
+// §10: the non-map fallback must exist. With readings in the database it
+// is a table; with none it is the heading plus an explicit empty state —
+// both satisfy the requirement, and a no-DB preview must not fail here.
+check(
+  "non-map text fallback present",
+  (await page.locator("table").count()) > 0 ||
+    (await page.getByRole("heading", { name: /Field readings as a list/i }).count()) > 0,
+);
 
 // Moving the slider must swap to a different precomputed slot.
 shadeFetches.length = 0;

@@ -21,10 +21,17 @@ import {
 export const WALK_METRES_PER_SECOND = 1.1;
 
 export type RoutePreference = {
-  /** 0 = shortest walk, 1 = maximum shade. */
+  /** 0 = shortest walk, 1 = maximum shade (or sun, per the seek target). */
   shadeWeight: number;
   label: string;
 };
+
+/**
+ * What the walker is trying to stay in. Summer walking means seeking shade;
+ * in winter the same streets and the same precomputed exposure answer the
+ * opposite question — the warmest walk is the sunniest one.
+ */
+export type SeekTarget = "shade" | "sun";
 
 export type Route = {
   /** Node indices along the route, in order. */
@@ -51,9 +58,17 @@ export type Route = {
  */
 const MAX_DETOUR_FACTOR = 2;
 
-function edgeCost(lengthM: number, exposurePercent: number, shadeWeight: number): number {
+function edgeCost(
+  lengthM: number,
+  exposurePercent: number,
+  weight: number,
+  seek: SeekTarget,
+): number {
   const sun = exposurePercent / 100;
-  return lengthM * (1 + shadeWeight * MAX_DETOUR_FACTOR * sun);
+  // The "discomfort" being avoided: sun when seeking shade, shade when
+  // seeking winter sun. Same search either way.
+  const discomfort = seek === "shade" ? sun : 1 - sun;
+  return lengthM * (1 + weight * MAX_DETOUR_FACTOR * discomfort);
 }
 
 /** Dijkstra with an optional per-edge penalty multiplier, used to push later
@@ -64,6 +79,7 @@ function shortestPath(
   start: number,
   goal: number,
   shadeWeight: number,
+  seek: SeekTarget,
   penalty: Float64Array | null,
 ): { nodes: number[]; edges: number[] } | null {
   const nodeCount = network.nodes.length;
@@ -88,7 +104,7 @@ function shortestPath(
       const next = edge.a === current ? edge.b : edge.a;
       if (settled[next]) continue;
 
-      let cost = edgeCost(edge.len, exposure[edgeIndex] ?? 50, shadeWeight);
+      let cost = edgeCost(edge.len, exposure[edgeIndex] ?? 50, shadeWeight, seek);
       if (penalty) cost *= penalty[edgeIndex];
 
       const candidate = dist[current] + cost;
@@ -180,6 +196,7 @@ export function planRoutes(
   goal: number,
   weights: number[] = [1, 0.5, 0],
   minimumRoutes = 3,
+  seek: SeekTarget = "shade",
 ): Route[] {
   if (start === goal) return [];
 
@@ -206,7 +223,7 @@ export function planRoutes(
   };
 
   for (const weight of weights) {
-    consider(shortestPath(network, exposure, start, goal, weight, null), weight);
+    consider(shortestPath(network, exposure, start, goal, weight, seek, null), weight);
   }
 
   // Still short of the promised count: re-run with the roads already used
@@ -221,11 +238,14 @@ export function planRoutes(
     // Vary the preference too, so alternatives differ in character and not
     // only in which streets they avoid.
     const weight = weights[attempt % weights.length] ?? 0.5;
-    consider(shortestPath(network, exposure, start, goal, weight, penalty), weight);
+    consider(shortestPath(network, exposure, start, goal, weight, seek, penalty), weight);
   }
 
-  // Shadiest first — that is the reason someone opened this planner.
-  routes.sort((a, b) => b.shadePercent - a.shadePercent);
+  // Best-first for what was asked: shadiest in summer, sunniest in winter —
+  // that is the reason someone opened this planner.
+  routes.sort((a, b) =>
+    seek === "shade" ? b.shadePercent - a.shadePercent : a.shadePercent - b.shadePercent,
+  );
   return routes;
 }
 

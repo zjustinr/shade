@@ -137,6 +137,33 @@ check(
   `(${shadiestUnderShade}%)`,
 );
 
+// --- Winter mode: "Most sun" flips the objective ---
+// Under the sun preference the headline stat and bar read "% in sun",
+// best-first, so readStats' first number is the sun share here.
+await page.getByRole("radio", { name: /Most sun/i }).click();
+await page.waitForTimeout(3000);
+const sunCards = page.locator("button[aria-pressed]").filter({ hasText: "in sun" });
+const sunStats = await sunCards.evaluateAll(readStats);
+console.log("        sun-preference routes:", JSON.stringify(sunStats));
+check("sun preference returns at least 3 routes", sunStats.length >= 3, `(got ${sunStats.length})`);
+check(
+  "routes are sorted sunniest first under sun preference",
+  sunStats.every((s, i) => i === 0 || sunStats[i - 1].shade >= s.shade),
+);
+const topSunShare = sunStats[0]?.shade ?? 0;
+check(
+  "sun preference finds a walk at least as sunny as the shade preference's best",
+  topSunShare >= 100 - shadiestUnderShade,
+  `(top ${topSunShare}% in sun vs ${100 - shadiestUnderShade}% under shade preference)`,
+);
+const topSunCardText = (await sunCards.nth(0).textContent()) ?? "";
+check('"Sunniest" tag appears on the top card', topSunCardText.includes("Sunniest"));
+check('the stat reads "in sun"', topSunCardText.includes("in sun"));
+
+// Restore the shade preference for the remaining checks.
+await page.getByRole("radio", { name: /Most shade/i }).click();
+await page.waitForTimeout(2500);
+
 // --- Which-is-which: badges, colours, and selection ---
 // Map badges are standalone buttons whose accessible name is exactly
 // "Route N"; the cards contain that text plus stats, so aria-label match
