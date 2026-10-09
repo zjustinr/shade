@@ -218,6 +218,113 @@ console.log("\nWinter mode: seeking sun instead of shade");
   );
 }
 
+console.log("\nWind preference: calmer and breezier walks");
+{
+  // Everything equally sunny, so ONLY wind can distinguish the routes.
+  // The bottom row and right column are a wind tunnel (22 mph); the left
+  // column and top row are sheltered (2 mph); the interior is middling.
+  const exposure = new Array(grid.edges.length).fill(50);
+  const mph = new Array(grid.edges.length).fill(8);
+  grid.edges.forEach((edge, i) => {
+    const colA = edge.a % N;
+    const colB = edge.b % N;
+    const rowA = Math.floor(edge.a / N);
+    const rowB = Math.floor(edge.b / N);
+    if ((rowA === 0 && rowB === 0) || (colA === N - 1 && colB === N - 1)) mph[i] = 22;
+    if ((colA === 0 && colB === 0) || (rowA === N - 1 && rowB === N - 1)) mph[i] = 2;
+  });
+
+  const calm = planRoutes(grid, exposure, start, goal, [0.2, 0.2, 0.2], 3, "shade", {
+    mph, seek: "calm", weight: 1,
+  });
+  const breezy = planRoutes(grid, exposure, start, goal, [0.2, 0.2, 0.2], 3, "shade", {
+    mph, seek: "breeze", weight: 1,
+  });
+  const ignore = planRoutes(grid, exposure, start, goal, [0.2, 0.2, 0.2], 3, "shade", {
+    mph, seek: "calm", weight: 0,
+  });
+
+  check("calmer preference returns at least 3 routes", calm.length >= 3, `(got ${calm.length})`);
+  check("breezier preference returns at least 3 routes", breezy.length >= 3, `(got ${breezy.length})`);
+
+  check(
+    "calmer walk follows the sheltered streets",
+    (calm[0].meanWindMph ?? 99) < 4,
+    `(top route mean ${calm[0].meanWindMph?.toFixed(1)} mph)`,
+  );
+  check(
+    "breezier walk follows the windy streets",
+    (breezy[0].meanWindMph ?? 0) > 18,
+    `(top route mean ${breezy[0].meanWindMph?.toFixed(1)} mph)`,
+  );
+  check(
+    "the same streets answer both questions",
+    (breezy[0].meanWindMph ?? 0) - (calm[0].meanWindMph ?? 99) > 12,
+    `(${breezy[0].meanWindMph?.toFixed(1)} vs ${calm[0].meanWindMph?.toFixed(1)} mph)`,
+  );
+  check(
+    "routes are ranked calmest-first when seeking calm",
+    calm.every((r, i) => i === 0 || (r.meanWindMph ?? 0) >= (calm[i - 1].meanWindMph ?? 0) - 0.01),
+  );
+  check(
+    "weight 0 ignores wind entirely (still reports it)",
+    ignore[0].meanWindMph !== null,
+  );
+  check(
+    "wind detour stays bounded",
+    calm[0].distanceM < idealShortest * 2.0,
+    `(${calm[0].distanceM.toFixed(0)}m vs minimum ${idealShortest.toFixed(0)}m)`,
+  );
+
+  const noWind = planRoutes(grid, exposure, start, goal, [0.2, 0.2, 0.2], 3, "shade", null);
+  check(
+    "no wind data means no wind figures (never a made-up number)",
+    noWind.every((r) => r.meanWindMph === null && r.peakWindMph === null),
+  );
+
+  // Wind and shade together: shade the windy corridor. A shade-seeker who
+  // also wants calm has to trade the two off rather than satisfy only one.
+  const shadeExposure = new Array(grid.edges.length).fill(100);
+  grid.edges.forEach((edge, i) => {
+    const colA = edge.a % N;
+    const colB = edge.b % N;
+    const rowA = Math.floor(edge.a / N);
+    const rowB = Math.floor(edge.b / N);
+    if ((rowA === 0 && rowB === 0) || (colA === N - 1 && colB === N - 1)) shadeExposure[i] = 0;
+  });
+  const shadeOnlyWind = planRoutes(grid, shadeExposure, start, goal, [1, 0.6, 0.2], 3, "shade", {
+    mph, seek: "calm", weight: 0,
+  });
+  check(
+    "with wind ignored the shaded windy corridor wins",
+    shadeOnlyWind[0].shadePercent > 90 && (shadeOnlyWind[0].meanWindMph ?? 0) > 18,
+    `(${shadeOnlyWind[0].shadePercent.toFixed(0)}% shade, ${shadeOnlyWind[0].meanWindMph?.toFixed(1)} mph)`,
+  );
+
+  // At equal weight the shaded-but-windy and sunny-but-sheltered corridors
+  // cost exactly the same, so neither should be hidden: the person is
+  // genuinely choosing between two comforts and must be shown both.
+  const equal = planRoutes(grid, shadeExposure, start, goal, [1, 0.6, 0.2], 3, "shade", {
+    mph, seek: "calm", weight: 1,
+  });
+  check(
+    "at equal weight both the shaded-windy and the sheltered-sunny walk are offered",
+    equal.some((r) => r.shadePercent > 90 && (r.meanWindMph ?? 0) > 18) &&
+      equal.some((r) => r.shadePercent < 10 && (r.meanWindMph ?? 99) < 4),
+    `(${equal.map((r) => `${r.shadePercent.toFixed(0)}%/${r.meanWindMph?.toFixed(0)}mph`).join(", ")})`,
+  );
+
+  // Weight wind twice as heavily and it must win outright.
+  const windFirst = planRoutes(grid, shadeExposure, start, goal, [1, 0.6, 0.2], 3, "shade", {
+    mph, seek: "calm", weight: 2,
+  });
+  check(
+    "weighting wind more heavily moves the best route off the windy corridor",
+    (windFirst[0].meanWindMph ?? 99) < (shadeOnlyWind[0].meanWindMph ?? 0) - 12,
+    `(${windFirst[0].meanWindMph?.toFixed(1)} vs ${shadeOnlyWind[0].meanWindMph?.toFixed(1)} mph)`,
+  );
+}
+
 console.log("\nAlternatives are genuinely different");
 {
   const exposure = new Array(grid.edges.length).fill(50);

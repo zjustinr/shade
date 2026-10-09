@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { WalkNetwork } from "@/lib/network";
 import type { Destination } from "@/lib/destinations";
+import type { WindClimate } from "@/lib/wind";
 
 type RouteData = {
   network: WalkNetwork | null;
@@ -84,4 +85,48 @@ export function useExposure(dateKey: string, enabled: boolean) {
   }, [dateKey, enabled]);
 
   return exposure;
+}
+
+/** What the wind model ships: pedestrian-level speed relative to open ground. */
+export type WindRatios = {
+  generatedAt: string;
+  model: string;
+  sectorCount: number;
+  edgeCount: number;
+  /** ratios[sector][edge] is the pedestrian-level speed as a percentage of
+   *  the open-terrain reference speed, for wind from that sector. */
+  ratios: number[][];
+};
+
+/**
+ * Wind data for the planner: the observed climatology (which way it usually
+ * blows, by season and hour) and the per-street model. Fetched only when
+ * the planner is open. Both are static files — and a failure just means no
+ * wind figures, never a made-up one.
+ */
+export function useWindData(enabled: boolean) {
+  const [climate, setClimate] = useState<WindClimate | null>(null);
+  const [model, setModel] = useState<WindRatios | null>(null);
+
+  useEffect(() => {
+    if (!enabled || (climate && model)) return;
+    let cancelled = false;
+    Promise.all([
+      fetch("/data/wind/climate.json").then((r) => (r.ok ? r.json() : Promise.reject())),
+      fetch("/data/wind/ratios.json").then((r) => (r.ok ? r.json() : Promise.reject())),
+    ])
+      .then(([c, m]) => {
+        if (cancelled) return;
+        setClimate(c as WindClimate);
+        setModel(m as WindRatios);
+      })
+      .catch(() => {
+        // No wind data: the planner keeps working, minus the wind controls.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, climate, model]);
+
+  return { climate, model };
 }

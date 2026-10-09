@@ -27,7 +27,9 @@
     "build:exposure": "tsx scripts/build-exposure.ts",
     "extract:destinations": "tsx scripts/extract-destinations.ts",
     "smoke:routes": "node scripts/smoke-routes.mjs",
-    "build:ios": "tsx scripts/build-ios.ts"
+    "build:ios": "tsx scripts/build-ios.ts",
+    "build:wind-climate": "tsx scripts/build-wind-climate.ts",
+    "verify:wind": "tsx scripts/verify-wind.ts"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",

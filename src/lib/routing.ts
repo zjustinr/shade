@@ -33,6 +33,23 @@ export type RoutePreference = {
  */
 export type SeekTarget = "shade" | "sun";
 
+/**
+ * Optional wind preference. `mph` is the estimated pedestrian-level wind
+ * speed on each edge (indexed like network.edges) for the wind the user
+ * chose; `seek` says whether they want it calmer or breezier. The speeds
+ * come from a screening model, so the router only ever uses them to rank
+ * streets against each other — never as an absolute promise.
+ */
+export type WindPreference = {
+  mph: number[];
+  seek: "calm" | "breeze";
+  /** 0 = ignore wind, 1 = as important as the shade/sun term at full weight. */
+  weight: number;
+};
+
+/** Speed at which an edge counts as fully "windy" for cost purposes. */
+const WIND_FULL_MPH = 15;
+
 export type Route = {
   /** Node indices along the route, in order. */
   nodes: number[];
@@ -45,6 +62,10 @@ export type Route = {
   /** 0-100, share of the walk in modelled shade. */
   shadePercent: number;
   shadeWeight: number;
+  /** Distance-weighted mean estimated wind speed, or null with no wind data. */
+  meanWindMph: number | null;
+  /** Worst single stretch (>= 30 m) of the walk, or null with no wind data. */
+  peakWindMph: number | null;
 };
 
 /**
@@ -63,12 +84,22 @@ function edgeCost(
   exposurePercent: number,
   weight: number,
   seek: SeekTarget,
+  windMph: number | null,
+  wind: WindPreference | null,
 ): number {
   const sun = exposurePercent / 100;
   // The "discomfort" being avoided: sun when seeking shade, shade when
   // seeking winter sun. Same search either way.
   const discomfort = seek === "shade" ? sun : 1 - sun;
-  return lengthM * (1 + weight * MAX_DETOUR_FACTOR * discomfort);
+  let extra = weight * MAX_DETOUR_FACTOR * discomfort;
+
+  if (wind && windMph !== null && wind.weight > 0) {
+    const gust = Math.min(1, windMph / WIND_FULL_MPH);
+    // Calmer: wind is the discomfort. Breezier: lack of it is.
+    const windDiscomfort = wind.seek === "calm" ? gust : 1 - gust;
+    extra += wind.weight * MAX_DETOUR_FACTOR * windDiscomfort;
+  }
+  return lengthM * (1 + extra);
 }
 
 /** Dijkstra with an optional per-edge penalty multiplier, used to push later
@@ -80,6 +111,7 @@ function shortestPath(
   goal: number,
   shadeWeight: number,
   seek: SeekTarget,
+  wind: WindPreference | null,
   penalty: Float64Array | null,
 ): { nodes: number[]; edges: number[] } | null {
   const nodeCount = network.nodes.length;
@@ -104,7 +136,14 @@ function shortestPath(
       const next = edge.a === current ? edge.b : edge.a;
       if (settled[next]) continue;
 
-      let cost = edgeCost(edge.len, exposure[edgeIndex] ?? 50, shadeWeight, seek);
+      let cost = edgeCost(
+        edge.len,
+        exposure[edgeIndex] ?? 50,
+        shadeWeight,
+        seek,
+        wind ? (wind.mph[edgeIndex] ?? null) : null,
+        wind,
+      );
       if (penalty) cost *= penalty[edgeIndex];
 
       const candidate = dist[current] + cost;
@@ -138,9 +177,12 @@ function describe(
   exposure: number[],
   path: { nodes: number[]; edges: number[] },
   shadeWeight: number,
+  windMph: number[] | null,
 ): Route {
   let distanceM = 0;
   let shadedM = 0;
+  let windWeighted = 0;
+  let peakWind = 0;
   const line: [number, number][] = [];
 
   for (let i = 0; i < path.edges.length; i++) {
@@ -149,6 +191,12 @@ function describe(
     const fromNode = path.nodes[i];
     distanceM += edge.len;
     shadedM += edge.len * (1 - (exposure[edgeIndex] ?? 50) / 100);
+    if (windMph) {
+      const w = windMph[edgeIndex] ?? 0;
+      windWeighted += edge.len * w;
+      // A 3 m sliver at a corner is not "the windy part of the walk".
+      if (edge.len >= 30 && w > peakWind) peakWind = w;
+    }
 
     const segment = edgeLine(network, edgeIndex, fromNode);
     // Skip the first point of every segment after the first: it duplicates
@@ -164,6 +212,8 @@ function describe(
     seconds: distanceM / WALK_METRES_PER_SECOND,
     shadePercent: distanceM > 0 ? (shadedM / distanceM) * 100 : 0,
     shadeWeight,
+    meanWindMph: windMph && distanceM > 0 ? windWeighted / distanceM : null,
+    peakWindMph: windMph ? peakWind : null,
   };
 }
 
@@ -197,6 +247,7 @@ export function planRoutes(
   weights: number[] = [1, 0.5, 0],
   minimumRoutes = 3,
   seek: SeekTarget = "shade",
+  wind: WindPreference | null = null,
 ): Route[] {
   if (start === goal) return [];
 
@@ -211,7 +262,7 @@ export function planRoutes(
    */
   const consider = (path: { nodes: number[]; edges: number[] } | null, weight: number) => {
     if (!path || path.edges.length === 0) return false;
-    const candidate = describe(network, exposure, path, weight);
+    const candidate = describe(network, exposure, path, weight, wind ? wind.mph : null);
     const distinct = routes.every(
       (existing) =>
         overlapFraction(candidate, existing, network) < MAX_OVERLAP &&
@@ -223,7 +274,7 @@ export function planRoutes(
   };
 
   for (const weight of weights) {
-    consider(shortestPath(network, exposure, start, goal, weight, seek, null), weight);
+    consider(shortestPath(network, exposure, start, goal, weight, seek, wind, null), weight);
   }
 
   // Still short of the promised count: re-run with the roads already used
@@ -238,14 +289,21 @@ export function planRoutes(
     // Vary the preference too, so alternatives differ in character and not
     // only in which streets they avoid.
     const weight = weights[attempt % weights.length] ?? 0.5;
-    consider(shortestPath(network, exposure, start, goal, weight, seek, penalty), weight);
+    consider(shortestPath(network, exposure, start, goal, weight, seek, wind, penalty), weight);
   }
 
   // Best-first for what was asked: shadiest in summer, sunniest in winter —
-  // that is the reason someone opened this planner.
-  routes.sort((a, b) =>
-    seek === "shade" ? b.shadePercent - a.shadePercent : a.shadePercent - b.shadePercent,
-  );
+  // that is the reason someone opened this planner. With a wind preference
+  // the ranking blends both comforts, so a slightly shadier route that
+  // runs the length of a wind tunnel does not sit above a calmer one.
+  const discomfort = (r: Route): number => {
+    const sun = seek === "shade" ? 1 - r.shadePercent / 100 : r.shadePercent / 100;
+    if (!wind || wind.weight <= 0 || r.meanWindMph === null) return sun;
+    const gust = Math.min(1, r.meanWindMph / WIND_FULL_MPH);
+    const windD = wind.seek === "calm" ? gust : 1 - gust;
+    return (sun + wind.weight * windD) / (1 + wind.weight);
+  };
+  routes.sort((a, b) => discomfort(a) - discomfort(b));
   return routes;
 }
 
