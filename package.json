@@ -29,7 +29,9 @@
     "smoke:routes": "node scripts/smoke-routes.mjs",
     "build:ios": "tsx scripts/build-ios.ts",
     "build:wind-climate": "tsx scripts/build-wind-climate.ts",
-    "verify:wind": "tsx scripts/verify-wind.ts"
+    "verify:wind": "tsx scripts/verify-wind.ts",
+    "build:wind": "tsx scripts/build-wind.ts",
+    "extract:wind-context": "tsx scripts/extract-wind-context.ts"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",

@@ -220,6 +220,116 @@ check(
     (await badge(3).getAttribute("aria-pressed")) === "true",
 );
 
+// --- Wind: calmer / breezier streets ---
+// Use a trip where the streets genuinely differ in wind (found by searching
+// the real destinations: calmest route ~4.4 mph, breeziest ~6.3 mph). The
+// library -> Tufts trip above runs through sheltered streets only, so there
+// is no wind choice to make on it — a wind preference cannot change what
+// does not differ. Pin the date and hour so the result does not depend on
+// the clock of the machine running the test.
+await page.locator('select:has(option[value="autumn-equinox"])').selectOption("autumn-equinox");
+await page.locator('input[type="range"]').fill("900"); // 15:00
+await pickPlace("start", "Mary Soo Hoo");
+await pickPlace("end", "#11201");
+await page.waitForTimeout(3500);
+
+check("wind controls are present", (await page.getByRole("radio", { name: /Calmer streets/i }).count()) === 1);
+check("breezier option is present", (await page.getByRole("radio", { name: /Breezier streets/i }).count()) === 1);
+check("wind defaults to 'Don't mind'", await page.getByRole("radio", { name: /Don't mind/i }).isChecked());
+check(
+  "the usual wind for this hour is stated, with direction and speed",
+  (await page.getByText(/Usual wind at this time: from the \w+, about \d+ mph/i).count()) === 1,
+);
+check(
+  "the wind estimate is labelled as an estimate, not a measurement",
+  (await page.getByText(/estimate from building shapes/i).count()) >= 1,
+);
+
+const windStats = async () =>
+  page
+    .locator("button[aria-pressed]")
+    .filter({ hasText: /in shade|in sun/ })
+    .evaluateAll((cards) =>
+      cards.map((c) => {
+        const el = c.querySelector('[data-stat="wind"]');
+        return el
+          ? { mph: Number(el.getAttribute("data-mph")), words: el.textContent?.trim() ?? "" }
+          : null;
+      }),
+    );
+
+const neutral = await windStats();
+console.log("        no wind preference:", JSON.stringify(neutral.map((w) => w?.mph)));
+check(
+  "every route reports a wind figure and a plain word",
+  neutral.length >= 3 && neutral.every((w) => w && Number.isFinite(w.mph) && /Calm|Breezy|Windy/.test(w.words)),
+  `(${JSON.stringify(neutral)})`,
+);
+
+await page.getByRole("radio", { name: /Calmer streets/i }).click();
+await page.waitForTimeout(2500);
+const calmStats = await windStats();
+console.log("        calmer-streets wind:", JSON.stringify(calmStats.map((w) => w?.mph)));
+check("calmer preference still returns at least 3 routes", calmStats.length >= 3, `(got ${calmStats.length})`);
+
+await page.getByRole("radio", { name: /Breezier streets/i }).click();
+await page.waitForTimeout(2500);
+const breezeStats = await windStats();
+console.log("        breezier-streets wind:", JSON.stringify(breezeStats.map((w) => w?.mph)));
+
+check(
+  "calmer puts a calmer walk on top than breezier does (>= 1 mph apart on this trip)",
+  breezeStats[0].mph - calmStats[0].mph >= 1,
+  `(calmer top ${calmStats[0].mph} mph vs breezier top ${breezeStats[0].mph} mph)`,
+);
+check(
+  "the calmer top route is no windier than the same trip with no preference",
+  calmStats[0].mph <= neutral[0].mph + 0.05,
+  `(calmer ${calmStats[0].mph} vs none ${neutral[0].mph})`,
+);
+check(
+  "the breezier top route is no calmer than the same trip with no preference",
+  breezeStats[0].mph >= neutral[0].mph - 0.05,
+  `(breezier ${breezeStats[0].mph} vs none ${neutral[0].mph})`,
+);
+
+// Strength changes the answer: strong wind makes every route windier.
+await page.getByRole("radio", { name: /Don't mind/i }).click();
+await page.waitForTimeout(1500);
+await page.getByText("Change the wind", { exact: true }).click();
+const baselineMph = (await windStats())[0].mph;
+await page.getByLabel("How strong").selectOption("strong");
+await page.waitForTimeout(2000);
+const strongMph = (await windStats())[0].mph;
+check(
+  "a strong wind reads windier than the usual wind on the same route",
+  strongMph > baselineMph,
+  `(usual ${baselineMph} mph vs strong ${strongMph} mph)`,
+);
+await page.getByLabel("How strong").selectOption("light");
+await page.waitForTimeout(2000);
+const lightMph = (await windStats())[0].mph;
+check("a light wind reads calmer than the usual wind", lightMph < baselineMph, `(light ${lightMph} vs usual ${baselineMph})`);
+await page.getByLabel("How strong").selectOption("typical");
+await page.waitForTimeout(1500);
+
+// Choosing a wind direction changes the answer too.
+const usualFrom = await page.getByLabel("Wind from").inputValue();
+await page.getByLabel("Wind from").selectOption("0"); // from the north
+await page.waitForTimeout(2000);
+const northMph = (await windStats())[0].mph;
+check("the wind direction can be changed, and the answer follows", usualFrom === "typical" && Number.isFinite(northMph));
+await page.getByLabel("Wind from").selectOption("typical");
+await page.waitForTimeout(1500);
+
+// The wind layer on the map.
+const windLayer = page.getByRole("checkbox", { name: "Wind on sidewalks" });
+check("wind layer toggle is present and starts off", (await windLayer.count()) === 1 && !(await windLayer.isChecked()));
+await windLayer.check();
+await page.waitForTimeout(1500);
+check("turning the wind layer on shows its legend", (await page.getByText(/Wind: calmer/i).count()) >= 1);
+await windLayer.uncheck();
+
 // --- The route must be drawn ---
 const drawn = await page.evaluate(() => {
   const canvas = document.querySelector("canvas.maplibregl-canvas");

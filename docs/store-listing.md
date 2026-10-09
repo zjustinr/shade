@@ -41,10 +41,10 @@ one tap away. Keep it that way in every future edit.
 - **Name** (≤30): `Cool Corners: Chinatown Shade`
 - **Subtitle** (≤30): `Shaded walking routes, Boston`
 - **Keywords** (≤100, don't repeat name/subtitle words):
-  `shady,walk,cool,heat,heatwave,sun,sunny,map,route,summer,winter,warm,elder,senior`
+  `shady,walk,breeze,heat,heatwave,sun,sunny,map,route,summer,winter,warm,elder,senior,wind,windy`
 - **Promotional text** (≤170, editable without review — swap seasonally):
   - Summer: `Heat advisory? See which side of the street is shaded right now, and take the cooler way there.`
-  - Winter: `Cold snap? The same map finds the sunniest walk instead.`
+  - Winter: `Cold, windy day? Find the sunniest walk, and steer clear of the windiest streets.`
 
 **Description:**
 
@@ -61,6 +61,8 @@ plans walking routes that stay in it.
 • Walking routes compared by % in shade, distance, and time — pick
   most shade, shortest, or in between
 • In winter it flips: find the sunniest, warmest walk instead
+• Wind-aware: see which streets tend to be windy, and ask for calmer or
+  breezier routes (an estimate, not a measurement)
 • Everyday destinations: pharmacies, the library, clinics, parks
 • Works offline — the map, the shade model and the route planner are
   all on your phone
@@ -69,7 +71,9 @@ plans walking routes that stay in it.
 
 Honest by design: shade is modelled from City of Boston building and
 tree data, and checked against on-the-street temperature readings taken
-by a Chinatown youth crew with infrared thermometers. Where the model
+by a Chinatown youth crew with infrared thermometers. Wind is a model
+estimate from building shapes and Logan Airport records, not yet checked
+against measurements on these streets. Where the model
 and the measurements disagree, the map shows both. Awnings, scaffolding
 and shelters are not modelled — check the street before you rely on it.
 
@@ -90,7 +94,7 @@ Built with and for the Chinatown community.
 
 - **Name**: `華埠清涼角落 Cool Corners`
 - **Subtitle**: `波士頓遮蔭步行路線`
-- **Keywords**: `遮蔭,陰涼,步行,路線,防暑,熱浪,地圖,唐人街,波士頓,陽光,冬天,長者`
+- **Keywords**: `遮蔭,陰涼,步行,路線,防暑,熱浪,地圖,唐人街,波士頓,陽光,冬天,長者,風`
 - **Promotional text** (summer): `酷熱警報？立即查看街道哪一側有遮蔭，走較涼快的路。`
 
 **Description:**
@@ -104,6 +108,7 @@ Built with and for the Chinatown community.
 • 任何時間、任何季節的遮蔭地圖
 • 步行路線以遮蔭比例、距離、時間比較 — 可選遮蔭最多、路程最短或兩者兼顧
 • 冬天相反：改找陽光最多、最溫暖的路線
+• 風況參考：查看哪些街道通常風大，並可選擇風較小或較大的路線（為估算，非實測）
 • 日常目的地：藥房、圖書館、診所、公園
 • 可離線使用 — 地圖、遮蔭模型與路線規劃都在您的手機上
 • English、繁體中文、Tiếng Việt
@@ -122,7 +127,7 @@ Built with and for the Chinatown community.
 
 - **Name**: `Góc Mát: Bóng mát Phố Tàu`
 - **Subtitle**: `Lộ trình đi bộ có bóng mát`
-- **Keywords**: `bóng mát,đi bộ,lộ trình,nắng nóng,bản đồ,Boston,mát mẻ,mùa đông,người cao tuổi`
+- **Keywords**: `bóng mát,đi bộ,lộ trình,nắng nóng,bản đồ,Boston,mát mẻ,mùa đông,người cao tuổi,gió`
 - **Promotional text** (summer): `Nắng nóng gay gắt? Xem ngay bên nào của con phố đang có bóng mát, và đi đường mát hơn.`
 
 **Description:**
@@ -139,6 +144,8 @@ cái cây, từng nửa giờ — và gợi ý lộ trình đi bộ giữ bạn 
 • So sánh các lộ trình theo % bóng mát, quãng đường và thời gian —
   chọn nhiều bóng mát nhất, ngắn nhất, hoặc cân bằng
 • Mùa đông thì ngược lại: tìm lộ trình nhiều nắng, ấm nhất
+• Có thông tin gió: xem phố nào thường nhiều gió và chọn lộ trình ít gió hơn hoặc
+  nhiều gió hơn (là ước tính, không phải số đo)
 • Điểm đến hằng ngày: nhà thuốc, thư viện, phòng khám, công viên
 • Dùng được ngoại tuyến — bản đồ, mô hình bóng mát và bộ lập lộ trình
   đều nằm trên điện thoại của bạn

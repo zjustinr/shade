@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { Destination } from "@/lib/destinations";
 import type { Route } from "@/lib/routing";
 import { routeColour } from "@/lib/route-style";
+import { windFeel } from "@/lib/wind";
 
 export type RoutePoint = {
   lng: number;
@@ -13,6 +14,36 @@ export type RoutePoint = {
 };
 
 export type PlannerPreference = "shade" | "sun" | "balanced" | "shortest";
+
+export type WindPref = "any" | "calm" | "breeze";
+/** "typical" follows the observed climate; a number is a compass sector (0-15). */
+export type WindDirChoice = "typical" | number;
+export type WindStrength = "typical" | "light" | "strong";
+
+export type WindControlsState =
+  | { available: false }
+  | {
+      available: true;
+      pref: WindPref;
+      onPrefChange: (p: WindPref) => void;
+      dir: WindDirChoice;
+      onDirChange: (d: WindDirChoice) => void;
+      strength: WindStrength;
+      onStrengthChange: (s: WindStrength) => void;
+      /** The sector actually in use, and the climatological one. */
+      sector: number;
+      refMph: number;
+      usualSector: number;
+    };
+
+/** Eight principal directions offered to the person; each is an even sector. */
+const PRINCIPAL_SECTORS = [0, 2, 4, 6, 8, 10, 12, 14] as const;
+const PRINCIPAL_KEYS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
+
+/** 16-sector index to the nearest of the 8 names the catalogs carry. */
+function principalKey(sector: number): (typeof PRINCIPAL_KEYS)[number] {
+  return PRINCIPAL_KEYS[Math.round(sector / 2) % 8];
+}
 
 export function RoutePlanner({
   start,
@@ -30,6 +61,7 @@ export function RoutePlanner({
   onPreferenceChange,
   loading,
   timeLabel,
+  wind,
 }: {
   start: RoutePoint | null;
   end: RoutePoint | null;
@@ -46,6 +78,7 @@ export function RoutePlanner({
   onPreferenceChange: (p: PlannerPreference) => void;
   loading: boolean;
   timeLabel: string;
+  wind: WindControlsState;
 }) {
   const t = useTranslations("route");
   const [query, setQuery] = useState("");
@@ -199,6 +232,85 @@ export function RoutePlanner({
         </div>
       </fieldset>
 
+      {wind.available ? (
+        <fieldset className="mt-4">
+          <legend className="text-sm font-semibold">{t("windTitle")}</legend>
+          <p className="text-xs text-neutral-600">
+            {t("windNow", {
+              dir: t(`dir.${principalKey(wind.sector)}`),
+              mph: Math.round(wind.refMph),
+            })}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(
+              [
+                ["any", t("windAny")],
+                ["calm", t("windCalm")],
+                ["breeze", t("windBreeze")],
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value} className="relative flex flex-1 cursor-pointer">
+                <input
+                  type="radio"
+                  name="wind-preference"
+                  value={value}
+                  checked={wind.pref === value}
+                  onChange={() => wind.onPrefChange(value)}
+                  className="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0"
+                />
+                <span
+                  className={`flex min-h-[44px] w-full items-center justify-center rounded-lg border-2 px-3 text-center text-sm font-medium peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600 ${
+                    wind.pref === value
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-300"
+                  }`}
+                >
+                  {label}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <details className="mt-2">
+            <summary className="cursor-pointer text-sm font-medium">{t("windChange")}</summary>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium">{t("windFrom")}</span>
+                <select
+                  value={wind.dir === "typical" ? "typical" : String(wind.dir)}
+                  onChange={(e) =>
+                    wind.onDirChange(e.target.value === "typical" ? "typical" : Number(e.target.value))
+                  }
+                  className="h-11 rounded-lg border border-neutral-300 px-2"
+                >
+                  <option value="typical">
+                    {t("windTypical", { dir: t(`dir.${principalKey(wind.usualSector)}`) })}
+                  </option>
+                  {PRINCIPAL_SECTORS.map((sector) => (
+                    <option key={sector} value={sector}>
+                      {t(`dir.${principalKey(sector)}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium">{t("windStrengthLabel")}</span>
+                <select
+                  value={wind.strength}
+                  onChange={(e) => wind.onStrengthChange(e.target.value as WindStrength)}
+                  className="h-11 rounded-lg border border-neutral-300 px-2"
+                >
+                  <option value="typical">{t("windStrengthTypical")}</option>
+                  <option value="light">{t("windStrengthLight")}</option>
+                  <option value="strong">{t("windStrengthStrong")}</option>
+                </select>
+              </label>
+            </div>
+          </details>
+          <p className="mt-2 text-xs text-neutral-600">{t("windNote")}</p>
+        </fieldset>
+      ) : null}
+
       <div className="mt-4">
         <h3 className="text-sm font-semibold">{t("results")}</h3>
         {routes.length > 0 ? (
@@ -275,6 +387,19 @@ export function RoutePlanner({
                           </span>
                         </dd>
                       </div>
+                      {route.meanWindMph !== null ? (
+                        <div data-stat="wind" data-mph={route.meanWindMph.toFixed(1)}>
+                          <dt className="sr-only">{t("windStat")}</dt>
+                          <dd className="tabular-nums text-neutral-700">
+                            {t(`feel.${windFeel(route.meanWindMph)}`)}
+                            {route.peakWindMph !== null &&
+                            windFeel(route.peakWindMph) === "windy" &&
+                            windFeel(route.meanWindMph) !== "windy"
+                              ? ` · ${t("windGusty")}`
+                              : ""}
+                          </dd>
+                        </div>
+                      ) : null}
                       <div data-stat="distance">
                         <dt className="sr-only">{t("metres")}</dt>
                         <dd className="tabular-nums text-neutral-700">

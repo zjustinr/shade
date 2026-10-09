@@ -35,6 +35,12 @@ export default async function AboutPage({
     await readFile(join(process.cwd(), "public", "data", "shade", "index.json"), "utf8"),
   ) as ShadeIndex;
 
+  // Read from the shipped wind model so the counts stated here cannot drift
+  // from what the model actually used.
+  const windModel = JSON.parse(
+    await readFile(join(process.cwd(), "public", "data", "wind", "ratios.json"), "utf8"),
+  ) as { buildingsTotal: number; buildingsAssumedHeight: number; assumedHeightM: number };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="text-3xl font-bold">{t("heading")}</h1>
@@ -68,6 +74,23 @@ export default async function AboutPage({
           )}
           .
         </p>
+      </Section>
+
+      <Section title={t("windHeading")}>
+        <p>{t("windBody")}</p>
+        <p className="mt-3">{t("windLimitsIntro")}</p>
+        <ul className="mt-3 list-disc space-y-2 pl-6">
+          <li>{t("windLimitScreening")}</li>
+          <li>{t("windLimitAirport")}</li>
+          <li>{t("windLimitUnmodelled")}</li>
+          <li>
+            {t("windLimitHeights", {
+              assumed: windModel.buildingsAssumedHeight,
+              total: windModel.buildingsTotal,
+            })}
+          </li>
+          <li>{t("windLimitUnvalidated")}</li>
+        </ul>
       </Section>
 
       <Section title={t("readingsHeading")}>
@@ -122,6 +145,17 @@ export default async function AboutPage({
               target="_blank"
             >
               City of Boston Open Data: Buildings with Roof Breaks
+            </a>
+          </li>
+          <li>
+            {t("sourceWind")} —{" "}
+            <a
+              href="https://mesonet.agron.iastate.edu/request/download.phtml?network=MA_ASOS"
+              className="underline underline-offset-4"
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              Boston Logan Airport (KBOS) hourly reports, Iowa Environmental Mesonet
             </a>
           </li>
           <li>

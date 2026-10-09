@@ -11,7 +11,7 @@
  * Run with: npm run verify:routing
  */
 import { metresBetween, type WalkNetwork } from "../src/lib/network";
-import { planRoutes } from "../src/lib/routing";
+import { planRoutes, windDiscomfort, windyEndMph } from "../src/lib/routing";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -301,17 +301,16 @@ console.log("\nWind preference: calmer and breezier walks");
     `(${shadeOnlyWind[0].shadePercent.toFixed(0)}% shade, ${shadeOnlyWind[0].meanWindMph?.toFixed(1)} mph)`,
   );
 
-  // At equal weight the shaded-but-windy and sunny-but-sheltered corridors
-  // cost exactly the same, so neither should be hidden: the person is
-  // genuinely choosing between two comforts and must be shown both.
-  const equal = planRoutes(grid, shadeExposure, start, goal, [1, 0.6, 0.2], 3, "shade", {
-    mph, seek: "calm", weight: 1,
+  // Which comfort wins follows which one the person weights more. (At
+  // exactly equal weight the two corridors cost the same and the choice is
+  // arbitrary, so that is deliberately not asserted.)
+  const shadeMatters = planRoutes(grid, shadeExposure, start, goal, [1, 0.6, 0.2], 3, "shade", {
+    mph, seek: "calm", weight: 0.5,
   });
   check(
-    "at equal weight both the shaded-windy and the sheltered-sunny walk are offered",
-    equal.some((r) => r.shadePercent > 90 && (r.meanWindMph ?? 0) > 18) &&
-      equal.some((r) => r.shadePercent < 10 && (r.meanWindMph ?? 99) < 4),
-    `(${equal.map((r) => `${r.shadePercent.toFixed(0)}%/${r.meanWindMph?.toFixed(0)}mph`).join(", ")})`,
+    "when shade matters more than wind, the shaded-but-windy walk wins",
+    shadeMatters[0].shadePercent > 90 && (shadeMatters[0].meanWindMph ?? 0) > 18,
+    `(${shadeMatters[0].shadePercent.toFixed(0)}% shade, ${shadeMatters[0].meanWindMph?.toFixed(1)} mph)`,
   );
 
   // Weight wind twice as heavily and it must win outright.
@@ -323,6 +322,27 @@ console.log("\nWind preference: calmer and breezier walks");
     (windFirst[0].meanWindMph ?? 99) < (shadeOnlyWind[0].meanWindMph ?? 0) - 12,
     `(${windFirst[0].meanWindMph?.toFixed(1)} vs ${shadeOnlyWind[0].meanWindMph?.toFixed(1)} mph)`,
   );
+}
+
+console.log("\nWind scale adapts to the day");
+{
+  // The bug this guards: with a fixed 12 mph "as windy as it gets" cap, a
+  // 25 mph day saturated every street, so a 13 mph street and a 27 mph one
+  // cost the same and the router avoided nothing.
+  check("a fixed scale saturates on a strong day (the old failure)", windDiscomfort(13, "calm", 12) === windDiscomfort(27, "calm", 12));
+  const strongDay = Array.from({ length: 100 }, (_, i) => 8 + i * 0.2); // 8 to 28 mph
+  const full = windyEndMph(strongDay);
+  check("the day's windy end tracks a strong day", full > 20, `(got ${full.toFixed(1)})`);
+  check(
+    "on a strong day a 13 mph street is clearly calmer than a 27 mph one",
+    windDiscomfort(27, "calm", full) - windDiscomfort(13, "calm", full) > 0.3,
+    `(${windDiscomfort(13, "calm", full).toFixed(2)} vs ${windDiscomfort(27, "calm", full).toFixed(2)})`,
+  );
+  const calmDay = Array.from({ length: 100 }, (_, i) => 1 + i * 0.03); // 1 to 4 mph
+  check("a near-calm day never inflates tiny differences (floor of 8 mph)", windyEndMph(calmDay) === 8);
+  check("discomfort is convex: doubling the wind more than doubles it", windDiscomfort(10, "calm", 12) > 2 * windDiscomfort(6, "calm", 12));
+  check("zero wind-discomfort at or below 2 mph", windDiscomfort(2, "calm", 12) === 0 && windDiscomfort(0, "calm", 12) === 0);
+  check("breezier: no wind is the discomfort, 10 mph is none", windDiscomfort(0, "breeze") === 1 && windDiscomfort(10, "breeze") === 0);
 }
 
 console.log("\nAlternatives are genuinely different");

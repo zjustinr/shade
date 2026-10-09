@@ -47,6 +47,9 @@ npm run build:shade           # precompute shadow geometry (~5 minutes)
 npm run build:network         # pull sidewalk centrelines, build the walking graph
 npm run build:exposure        # per-edge sun exposure per half-hour (needs the two above)
 npm run extract:destinations  # pharmacies, library, hospitals, housing, restaurants, parks
+npm run build:wind-climate    # real Boston Logan wind observations -> typical wind by season/hour
+npm run extract:wind-context  # padded building footprints for the wind model (build input only)
+npm run build:wind            # per-sidewalk wind model, 16 directions (needs build:network)
 ```
 
 `extract:data` writes `public/data/{trees,buildings}.geojson`.
@@ -72,6 +75,10 @@ computation. The City APIs are never called at request time.
 | `npm run build:network` | Rebuild the walking graph from City sidewalk data |
 | `npm run build:exposure` | Recompute per-edge sun exposure per time slot |
 | `npm run extract:destinations` | Refresh the walking-destinations layer |
+| `npm run build:wind-climate` | Rebuild typical wind from 16 years of Logan observations |
+| `npm run extract:wind-context` | Fetch the padded footprints the wind model needs |
+| `npm run build:wind` | Rebuild the per-sidewalk wind model |
+| `npm run verify:wind` | Assert the wind model's physical orderings and the shipped data |
 | `npm run verify:shade` | Assert the solar geometry against physics |
 | `npm run verify:routing` | Assert the route planner on a synthetic grid |
 | `npm run verify:network` | Assert the real graph: connected, covers the bbox, sane distances |
@@ -172,6 +179,12 @@ should trust the map:
   way there is shaded. It records nothing about air conditioning, refuge
   status or opening hours — that is the City's cooling map, which the app
   links out to (§0). Keep it that way.
+- Wind is an estimate and says so everywhere it appears. It shows words
+  (calm / breezy / windy), never speeds as fact; `/about` states in all three
+  languages that it is a screening model, not a wind-tunnel result, and has
+  not yet been validated against measurements on these streets. The measured
+  effect of the "calmer streets" preference (a real but modest benefit) is in
+  `docs/wind-model.md`; do not promise more than it shows.
 - Where the source data has a real gap, the UI says so: BHA has no
   development inside Chinatown itself, and the layer says that rather than
   letting a near-empty layer imply the neighbourhood has no public housing.

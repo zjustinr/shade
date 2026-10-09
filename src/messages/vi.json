@@ -47,7 +47,9 @@
     "legendReading": "Số liệu đo thực địa",
     "legendCorner": "Góc Mát",
     "blockSheets": "Bảng in theo dãy phố",
-    "now": "Bây giờ"
+    "now": "Bây giờ",
+    "layerWind": "Gió trên vỉa hè",
+    "legendWind": "Gió: ít hơn → nhiều hơn (ước tính)"
   },
   "disclaimer": {
     "short": "Bóng mát ước tính. Chỉ tính toà nhà và cây xanh — không bao gồm mái hiên, giàn giáo và nhà chờ. Đã đối chiếu bằng đo đạc thực địa tại 60 địa điểm.",
@@ -108,7 +110,16 @@
     "sourceCity": "Bản đồ nguồn tránh nóng của Thành phố Boston",
     "privacyHeading": "Quyền riêng tư",
     "privacyBody": "Không tài khoản, không theo dõi, không dùng công cụ phân tích của bên thứ ba. Cookie duy nhất chỉ ghi nhớ ngôn ngữ bạn chọn. Người đo chỉ được ghi tên gọi, và vị trí chỉ được lấy đúng vào lúc thực hiện phép đo.",
-    "contactHeading": "Liên hệ"
+    "contactHeading": "Liên hệ",
+    "windHeading": "Gió được tính như thế nào",
+    "windBody": "Gió được tính theo hai phần. Thứ nhất, gió thường thổi theo hướng nào: chúng tôi dùng 16 năm số liệu quan trắc hằng giờ của sân bay Boston Logan (2010–2025) để tìm hướng và tốc độ thường gặp cho từng mùa và từng giờ. Thứ hai, mỗi con phố làm gì với luồng gió đó: từ hình dạng và chiều cao các tòa nhà, chúng tôi ước tính vỉa hè được che chắn bao nhiêu ở phía đón gió, gió mạnh lên bao nhiêu ở các góc đón gió và chân những tòa nhà cao, và con phố chạy dọc theo hướng gió làm gió bị dồn lại bao nhiêu. Kết quả là một tỷ lệ cho mỗi vỉa hè — bao nhiêu phần của gió ở nơi thoáng đến được người đi bộ.",
+    "windLimitsIntro": "Gió khó mô hình hơn bóng mát, nên hãy đặc biệt thận trọng:",
+    "windLimitScreening": "Đây là ước tính sàng lọc dựa trên các quy tắc kinh nghiệm đã công bố, không phải thử nghiệm hầm gió hay mô phỏng chất lưu đầy đủ. Nó giúp nhận ra con phố nào nhiều gió hơn con phố khác với cùng một luồng gió, nhưng không cho biết chính xác tốc độ gió — vì vậy ứng dụng dùng các từ lặng gió, gió nhẹ, nhiều gió thay vì con số.",
+    "windLimitAirport": "Sân bay Logan nằm cạnh mặt nước thoáng nên gió ở đó mạnh hơn nhiều so với giữa các tòa nhà. Chúng tôi chỉ dùng nó để xác định hướng gió và tốc độ tham chiếu.",
+    "windLimitUnmodelled": "Cây cối, mái hiên, vật dụng đường phố, mưa, hiệu ứng nhiệt độ và gió giật không được mô hình hóa. Các góc và luồng gió xuống của tòa nhà cao là phần kém chắc chắn nhất.",
+    "windLimitHeights": "{assumed} trong số {total} hình khối tòa nhà dùng cho gió (Phố Tàu cộng thêm vùng đệm 280 m) không có chiều cao được ghi nhận. Khác với bóng mát, chúng tôi giả định 12 m cho các tòa này thay vì để trống, và đã kiểm tra rằng điều đó hầu như không làm thay đổi thứ tự phố nào nhiều gió hơn.",
+    "windLimitUnvalidated": "Ước tính gió chưa được đối chiếu với số đo thực tế trên các con phố này. Nhóm thực địa dự định đo bằng máy đo gió cầm tay để kiểm tra. Cho đến lúc đó, hãy coi đây là hướng dẫn, không phải sự thật.",
+    "sourceWind": "Số liệu quan trắc gió"
   },
   "print": {
     "heading": "Bảng bóng mát",
@@ -171,6 +182,36 @@
     "prefSun": "Nhiều nắng nhất",
     "sunniest": "Nhiều nắng nhất",
     "inSun": "dưới nắng",
-    "segmentLegend": "Trên lộ trình được chọn, màu hổ phách đánh dấu các đoạn có nắng."
+    "segmentLegend": "Trên lộ trình được chọn, màu hổ phách đánh dấu các đoạn có nắng.",
+    "windTitle": "Gió",
+    "windNow": "Gió thường gặp lúc này: từ hướng {dir}, khoảng {mph} dặm/giờ ở nơi thoáng.",
+    "windAny": "Không quan tâm",
+    "windCalm": "Phố ít gió hơn",
+    "windBreeze": "Phố nhiều gió hơn",
+    "windChange": "Đổi điều kiện gió",
+    "windFrom": "Gió thổi từ",
+    "windTypical": "Thường gặp vào mùa và giờ này ({dir})",
+    "windStrengthLabel": "Sức gió",
+    "windStrengthTypical": "Thường gặp",
+    "windStrengthLight": "Nhẹ (6 dặm/giờ)",
+    "windStrengthStrong": "Mạnh (25 dặm/giờ)",
+    "windNote": "Gió là ước tính dựa trên hình dạng các tòa nhà và số liệu sân bay Boston Logan. Nó cho biết phố nào thường nhiều gió hơn, không phải tốc độ đo được. Cây cối, mái hiên và các cơn gió giật không được mô hình hóa.",
+    "windStat": "Gió",
+    "windGusty": "đoạn gió giật",
+    "feel": {
+      "calm": "Lặng gió",
+      "breezy": "Gió nhẹ",
+      "windy": "Nhiều gió"
+    },
+    "dir": {
+      "N": "Bắc",
+      "NE": "Đông Bắc",
+      "E": "Đông",
+      "SE": "Đông Nam",
+      "S": "Nam",
+      "SW": "Tây Nam",
+      "W": "Tây",
+      "NW": "Tây Bắc"
+    }
   }
 }

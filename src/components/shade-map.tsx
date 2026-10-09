@@ -30,8 +30,10 @@ import {
   type DestinationCategory,
 } from "@/lib/destinations";
 import { edgeLine, nearestNode } from "@/lib/network";
-import { planRoutes, type Route } from "@/lib/routing";
-import { useExposure, useRouteData } from "@/lib/use-route-data";
+import { planRoutes, windyEndMph, type Route, type WindPreference } from "@/lib/routing";
+import { useExposure, useRouteData, useWindData } from "@/lib/use-route-data";
+import { typicalWind } from "@/lib/wind";
+import type { WindControlsState, WindDirChoice, WindPref, WindStrength } from "@/components/route-planner";
 import { badgeFraction, pointAlong, routeColour } from "@/lib/route-style";
 import { ReadingCard } from "./reading-card";
 import { RoutePlanner, type PlannerPreference, type RoutePoint } from "./route-planner";
@@ -59,7 +61,13 @@ function nowSliderMinutes(index: ShadeIndex): number {
   return snapped;
 }
 
-type LayerKey = "shade" | "trees" | "readings" | "corners" | "destinations";
+type LayerKey = "shade" | "trees" | "readings" | "corners" | "destinations" | "wind";
+
+/** Open-terrain 10 m wind speeds (mph) offered as "light" and "strong". */
+const WIND_STRENGTH_MPH: Record<Exclude<WindStrength, "typical">, number> = {
+  light: 6,
+  strong: 25,
+};
 
 /** Preference -> the shade weights fed to the planner. Every preference
  *  still returns several routes; it decides which one is highlighted and
@@ -179,7 +187,12 @@ export function ShadeMap({
     trees: true,
     readings: true,
     corners: true,
+    // Wind is opt-in: the map opens on shade, the question it exists for.
+    wind: false,
   });
+  const [windPref, setWindPref] = useState<WindPref>("any");
+  const [windDir, setWindDir] = useState<WindDirChoice>("typical");
+  const [windStrength, setWindStrength] = useState<WindStrength>("typical");
   const [selectedReading, setSelectedReading] = useState<PublicReading | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<{
     name: string;
@@ -198,14 +211,60 @@ export function ShadeMap({
 
   // Network and destinations load only once the planner is opened; most
   // visits never route.
-  const { network, destinations, loading: routeDataLoading } = useRouteData(planning);
+  const wantsNetwork = planning || visible.wind;
+  const { network, destinations, loading: routeDataLoading } = useRouteData(wantsNetwork);
   const exposureByDate = useExposure(activeDate.dateKey, planning);
   const exposure = exposureByDate?.[slot.time] ?? null;
+  const { climate, model: windModel } = useWindData(wantsNetwork);
+
+  // Which wind, and how strong. "Typical" is what Logan Airport actually
+  // recorded at this season and hour over 16 years; the person can override
+  // either part. The result is a speed per sidewalk edge: the model's ratio
+  // (how much the street changes the wind) times the open-ground speed.
+  const wind = useMemo(() => {
+    if (!network || !climate || !windModel) return null;
+    if (windModel.edgeCount !== network.edges.length) return null; // stale data: say nothing
+    const hour = Number(slot.time.slice(0, 2));
+    const usual = typicalWind(climate, activeDate.dateKey, hour);
+    if (!usual) return null;
+    const sector = windDir === "typical" ? usual.sector : windDir;
+    const row = climate.dates[activeDate.dateKey]?.hours[hour];
+    const refMph =
+      windStrength === "typical"
+        ? windDir === "typical"
+          ? usual.speedMph
+          : row?.speedMph[sector] || row?.medianMph || usual.speedMph
+        : WIND_STRENGTH_MPH[windStrength];
+    const ratios = windModel.ratios[sector];
+    return {
+      usual,
+      sector,
+      refMph,
+      mph: ratios.map((r) => (r / 100) * refMph),
+    };
+  }, [network, climate, windModel, slot.time, activeDate.dateKey, windDir, windStrength]);
 
   const routes: Route[] = useMemo(() => {
     if (!planning || !network || !exposure || !start || !end) return [];
     const a = nearestNode(network, [start.lng, start.lat]);
     const b = nearestNode(network, [end.lng, end.lat]);
+    // Wind figures are always reported when there is a model; they only
+    // STEER the route when the person asked for calmer or breezier.
+    // Weight 2: choosing "calmer" is an explicit request, so wind outweighs
+    // the shade term. Measured on 400 random trips between real
+    // destinations at a usual summer afternoon wind, this avoids the windy
+    // stretch in about half the trips that have one, at a cost of about 7
+    // points of shade and 14 m — a modest, honest trade, not a miracle.
+    const windPreference: WindPreference | null = wind
+      ? {
+          mph: wind.mph,
+          seek: windPref === "breeze" ? "breeze" : "calm",
+          weight: windPref === "any" ? 0 : 2,
+          // Relative to today's own windy end, so a strong-wind day still
+          // tells a 13 mph street from a 27 mph one.
+          fullMph: windyEndMph(wind.mph),
+        }
+      : null;
     return planRoutes(
       network,
       exposure,
@@ -214,8 +273,9 @@ export function ShadeMap({
       PREFERENCE_WEIGHTS[preference],
       3,
       preference === "sun" ? "sun" : "shade",
+      windPreference,
     );
-  }, [planning, network, exposure, start, end, preference]);
+  }, [planning, network, exposure, start, end, preference, wind, windPref]);
 
   // Clamp rather than sync: when the route list changes underneath a stale
   // selection, fall back to the first route without an effect round-trip.
@@ -248,6 +308,51 @@ export function ShadeMap({
       map.addSource("destinations", {
         type: "geojson",
         data: "/data/destinations.geojson",
+      });
+      // Wind on the sidewalks, drawn under the routes so a chosen route is
+      // never hidden by the colour of the street it runs along.
+      map.addSource("wind-edges", { type: "geojson", data: EMPTY });
+      // A white casing under the lines so the colour reads against a
+      // consistent background: without it, calm streets inside the grey
+      // building shadows looked darker and heavier than the open, windy
+      // ones — the reverse of the truth. Violet, because every route colour
+      // (blue, magenta, teal, brown, olive) is taken, and width grows with
+      // the wind so the meaning survives colour-blindness too.
+      const WIND_WIDTH = [
+        "interpolate", ["linear"], ["get", "mph"], 0, 2.2, 6, 3.6, 12, 5.5,
+      ] as const;
+      map.addLayer({
+        id: "wind-edges-casing",
+        type: "line",
+        source: "wind-edges",
+        layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-opacity": 0.85,
+          "line-width": [
+            "interpolate", ["linear"], ["get", "mph"], 0, 4.2, 6, 5.6, 12, 7.5,
+          ],
+        },
+      });
+      map.addLayer({
+        id: "wind-edges",
+        type: "line",
+        source: "wind-edges",
+        layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-width": WIND_WIDTH as unknown as number,
+          "line-opacity": 1,
+          "line-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "mph"],
+            0, "#ddd6fe",
+            3, "#c4b5fd",
+            6, "#8b5cf6",
+            10, "#5b21b6",
+            15, "#2e1065",
+          ],
+        },
       });
       map.addSource("routes", { type: "geojson", data: EMPTY });
       map.addSource("route-sun", { type: "geojson", data: EMPTY });
@@ -633,6 +738,27 @@ export function ShadeMap({
     });
   }, [map, routes, activeRoute]);
 
+  // Wind on every sidewalk, for the wind layer.
+  useEffect(() => {
+    const source = map?.getSource("wind-edges") as GeoJSONSource | undefined;
+    if (!source) return;
+    if (!network || !wind || !visible.wind) {
+      source.setData(EMPTY);
+      return;
+    }
+    source.setData({
+      type: "FeatureCollection",
+      features: network.edges.map((edge, i) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "LineString" as const,
+          coordinates: edgeLine(network, i, edge.a),
+        },
+        properties: { mph: Math.round((wind.mph[i] ?? 0) * 10) / 10 },
+      })),
+    });
+  }, [map, network, wind, visible.wind]);
+
   // The selected route's sunny stretches, as separate segments for the
   // amber overlay. Exposure is per edge, so this is a lookup, not geometry
   // work.
@@ -683,6 +809,7 @@ export function ShadeMap({
       readings: ["readings-dots"],
       corners: ["corners-dots"],
       destinations: ["destinations-dots"],
+      wind: ["wind-edges-casing", "wind-edges"],
     };
     for (const [key, layerIds] of Object.entries(mapping) as [LayerKey, string[]][]) {
       for (const id of layerIds) {
@@ -773,6 +900,7 @@ export function ShadeMap({
             ["readings", t("layerReadings")],
             ["corners", t("layerCorners")],
             ["destinations", tDest("title")],
+            ["wind", t("layerWind")],
           ] as const
         ).map(([key, label]) => (
           <label
@@ -823,7 +951,7 @@ export function ShadeMap({
         </fieldset>
       ) : null}
 
-      <Legend />
+      <Legend showWind={visible.wind && !!wind} />
 
       <div>
         <button
@@ -866,6 +994,22 @@ export function ShadeMap({
           onPreferenceChange={setPreference}
           loading={routeDataLoading || (!!start && !!end && !exposure)}
           timeLabel={timeLabel}
+          wind={
+            wind
+              ? ({
+                  available: true,
+                  pref: windPref,
+                  onPrefChange: setWindPref,
+                  dir: windDir,
+                  onDirChange: setWindDir,
+                  strength: windStrength,
+                  onStrengthChange: setWindStrength,
+                  sector: wind.sector,
+                  refMph: wind.refMph,
+                  usualSector: wind.usual.sector,
+                } satisfies WindControlsState)
+              : ({ available: false } satisfies WindControlsState)
+          }
         />
       ) : null}
 
@@ -898,7 +1042,7 @@ export function ShadeMap({
   );
 }
 
-function Legend() {
+function Legend({ showWind }: { showWind: boolean }) {
   const t = useTranslations("map");
   const items = [
     { color: "#1f2937", opacity: 0.45, label: t("legendBuilding") },
@@ -918,6 +1062,19 @@ function Legend() {
           {item.label}
         </li>
       ))}
+      {showWind ? (
+        <li className="flex items-center gap-2">
+          <span
+            aria-hidden
+            className="inline-block h-3 w-16 rounded-sm border border-neutral-400"
+            style={{
+              background:
+                "linear-gradient(to right, #ddd6fe, #c4b5fd, #8b5cf6, #5b21b6, #2e1065)",
+            }}
+          />
+          {t("legendWind")}
+        </li>
+      ) : null}
     </ul>
   );
 }

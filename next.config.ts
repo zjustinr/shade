@@ -38,6 +38,18 @@ const withPWA = withPWAInit({
       },
     },
     {
+      // The route planner's static inputs: walking network, destinations,
+      // per-edge sun exposure and the wind model + climatology. They change
+      // only when the data is rebuilt, so once fetched they serve from
+      // cache — which is what lets the planner work with no signal.
+      urlPattern: /\/data\/(network|destinations|exposure|wind)\b.*\.(json|geojson)$/,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "planner-data",
+        expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 90 },
+      },
+    },
+    {
       urlPattern: /\/data\/(trees|buildings)\.geojson$/,
       handler: "CacheFirst",
       options: {

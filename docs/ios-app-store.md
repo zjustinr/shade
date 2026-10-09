@@ -168,6 +168,13 @@ stretches); %-shade per route; time slider re-ranking routes; winter sun
 mode (their users walk the sunny side in winter too — our precomputed
 winter-solstice exposure made the flip nearly free).
 
+**Added after the study, on the user's own request:** wind. A layer of
+estimated wind on every sidewalk and a calmer/breezier route preference,
+built from real Logan observations plus a building-geometry screening
+model (docs/wind-model.md). Its measured benefit is real but modest, and
+it is unvalidated against on-street measurements — keep the store copy to
+"estimate", as the listing does.
+
 **Worth doing next, in order:**
 1. Live "remaining shade ahead" while walking a chosen route (they show
    remaining distance/time/shade during the walk) — needs only geolocation

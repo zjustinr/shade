@@ -41,7 +41,9 @@
     "legendReading": "Field reading",
     "legendCorner": "Cool Corner",
     "blockSheets": "Printable block sheets",
-    "now": "Now"
+    "now": "Now",
+    "layerWind": "Wind on sidewalks",
+    "legendWind": "Wind: calmer → windier (estimate)"
   },
   "disclaimer": {
     "short": "Modelled shade. Buildings and trees only — awnings, scaffolding and shelters are not included. Verified by field measurement at 60 locations.",
@@ -102,7 +104,16 @@
     "sourceCity": "City of Boston cooling resources map",
     "privacyHeading": "Privacy",
     "privacyBody": "No accounts, no tracking, no third-party analytics. The only cookie remembers your language. Observer names are recorded as a first name only, and location is captured only at the moment a reading is taken.",
-    "contactHeading": "Contact"
+    "contactHeading": "Contact",
+    "windHeading": "How the wind is worked out",
+    "windBody": "Wind is worked out in two parts. First, which way it usually blows: we use 16 years of hourly observations from Boston Logan Airport (2010–2025) to find the usual direction and speed for each season and hour. Second, what each street does to that wind: from building footprints and heights we estimate how sheltered a sidewalk is on its upwind side, how much the wind speeds up at the windward corners and bases of tall buildings, and how much a street running along the wind squeezes it. The result is a ratio for every sidewalk — how much of the open-ground wind reaches a walker there.",
+    "windLimitsIntro": "Wind is harder to model than shade, so be extra careful with it:",
+    "windLimitScreening": "This is a screening estimate built from published rules of thumb, not a wind-tunnel test or a full fluid simulation. It is good at saying one street is likely windier than another for the same wind. It is not good at saying exactly how fast the wind blows, which is why the app uses the words calm, breezy and windy rather than speeds.",
+    "windLimitAirport": "Logan Airport sits beside open water, so its winds are stronger than anything between buildings. We use it only to set the direction and a reference speed.",
+    "windLimitUnmodelled": "Trees, awnings, street furniture, rain, temperature effects and gusts are not modelled. The corners and downdrafts of tall buildings are the most uncertain part.",
+    "windLimitHeights": "{assumed} of the {total} building footprints used for wind (Chinatown plus a 280 m margin) have no recorded height. Unlike for shade, we assume 12 m for these rather than leave gaps, and we checked that this barely changes which streets come out windier than others.",
+    "windLimitUnvalidated": "The wind estimate has not yet been checked against measurements on these streets. A handheld-anemometer pass by the field crew is the planned test. Until then, treat it as a guide, not a fact.",
+    "sourceWind": "Wind observations"
   },
   "print": {
     "heading": "Shade sheet",
@@ -165,6 +176,36 @@
     "prefSun": "Most sun",
     "sunniest": "Sunniest",
     "inSun": "in sun",
-    "segmentLegend": "On the highlighted route, amber marks the stretches in sun."
+    "segmentLegend": "On the highlighted route, amber marks the stretches in sun.",
+    "windTitle": "Wind",
+    "windNow": "Usual wind at this time: from the {dir}, about {mph} mph in the open.",
+    "windAny": "Don't mind",
+    "windCalm": "Calmer streets",
+    "windBreeze": "Breezier streets",
+    "windChange": "Change the wind",
+    "windFrom": "Wind from",
+    "windTypical": "Usual for this season and hour ({dir})",
+    "windStrengthLabel": "How strong",
+    "windStrengthTypical": "Usual",
+    "windStrengthLight": "Light (6 mph)",
+    "windStrengthStrong": "Strong (25 mph)",
+    "windNote": "Wind is an estimate from building shapes and Boston Logan Airport records. It shows which streets tend to be windier, not measured speeds. Trees, awnings and gusts are not modelled.",
+    "windStat": "Wind",
+    "windGusty": "gusty spots",
+    "feel": {
+      "calm": "Calm",
+      "breezy": "Breezy",
+      "windy": "Windy"
+    },
+    "dir": {
+      "N": "north",
+      "NE": "northeast",
+      "E": "east",
+      "SE": "southeast",
+      "S": "south",
+      "SW": "southwest",
+      "W": "west",
+      "NW": "northwest"
+    }
   }
 }
