@@ -1,0 +1,225 @@
+name: iOS build and TestFlight upload
+
+# Builds the Capacitor iOS app on a macOS runner, so releases do not need a
+# Mac. Two modes:
+#
+#  * CHECK (the default when run by hand): build the web bundle, sync it into
+#    the Xcode project, and compile the app for the iOS Simulator. Needs no
+#    Apple account and no secrets. It proves the toolchain and the project
+#    still build, and is safe to run any time.
+#
+#  * RELEASE (a pushed tag like ios-v1.0.1, or a manual run with "upload"
+#    ticked): also archive, sign with a cloud-managed certificate through an
+#    App Store Connect API key, and upload the build to TestFlight. Needs the
+#    four secrets listed in docs/ios-ci.md. It never submits for App Review:
+#    that stays a deliberate click in App Store Connect.
+#
+# Setup, secrets and how to release: docs/ios-ci.md
+
+on:
+  push:
+    tags: ["ios-v*"]
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Archive, sign and upload to TestFlight (needs the Apple secrets). Leave off to only check the app builds."
+        type: boolean
+        default: false
+      version:
+        description: "Marketing version for an upload, like 1.0.1. Blank: the tag's version, or the one in the Xcode project."
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# Two uploads racing would collide on build numbers; queue, never cancel.
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      UPLOAD: ${{ startsWith(github.ref, 'refs/tags/ios-v') || inputs.upload == true }}
+      SCHEME: App
+      PROJECT: ios/App/App.xcodeproj
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcode-select -p
+          node --version
+          # The App Store only accepts builds made with the iOS 26 SDK or later.
+          major="$(xcodebuild -version | awk '/^Xcode/ {split($2, v, "."); print v[1]}')"
+          if [ "${major:-0}" -lt 26 ]; then
+            echo "::error::Xcode $major is too old: App Store Connect requires Xcode 26 or later."
+            exit 1
+          fi
+
+      - name: Check the bundle id
+        run: |
+          if [ "$UPLOAD" = "true" ]; then
+            node scripts/check-ios-bundle-id.mjs --release
+          else
+            node scripts/check-ios-bundle-id.mjs
+          fi
+        env:
+          ALLOW_PLACEHOLDER_BUNDLE_ID: ${{ vars.ALLOW_PLACEHOLDER_BUNDLE_ID }}
+
+      - name: Require the Apple secrets (release only)
+        if: env.UPLOAD == 'true'
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          missing=""
+          [ -n "$KEY_ID" ]    || missing="$missing APP_STORE_CONNECT_KEY_ID"
+          [ -n "$ISSUER_ID" ] || missing="$missing APP_STORE_CONNECT_ISSUER_ID"
+          [ -n "$API_KEY" ]   || missing="$missing APP_STORE_CONNECT_API_KEY"
+          [ -n "$TEAM_ID" ]   || missing="$missing APPLE_TEAM_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. See docs/ios-ci.md for how to create them."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the web bundle
+        run: npm run build:ios
+
+      - name: Copy the bundle into the Xcode project
+        run: npx cap sync ios
+
+      - name: Build for the iOS Simulator (no signing)
+        # Always runs, even for a release: it fails fast on a compile error
+        # before any signing or upload is attempted.
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/logs"
+          xcodebuild build \
+            -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/derived" \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$RUNNER_TEMP/logs/simulator-build.log" | tail -n 40
+
+      - name: Decide the version
+        id: version
+        if: env.UPLOAD == 'true'
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="$INPUT_VERSION"
+          if [ -z "$version" ] && [[ "$GITHUB_REF" == refs/tags/ios-v* ]]; then
+            version="${GITHUB_REF#refs/tags/ios-v}"
+          fi
+          if [ -n "$version" ] && ! [[ "$version" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
+            echo "::error::\"$version\" is not a valid version. Use 1, 1.2 or 1.2.3."
+            exit 1
+          fi
+          # Build numbers must only ever go up for a given version, including
+          # across re-runs of the same workflow run.
+          build=$(( GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT ))
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "Version: ${version:-<from the Xcode project>}  Build: $build"
+
+      - name: Archive, sign and upload to TestFlight
+        if: env.UPLOAD == 'true'
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          set -o pipefail
+          umask 077
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${KEY_ID}.p8"
+          printf '%s' "$API_KEY" > "$KEY_PATH"
+
+          # Cloud-managed signing: with the API key, Xcode registers the app
+          # id and creates or reuses the distribution certificate and profile
+          # itself, so no certificate ever has to be exported from a Mac.
+          AUTH=(-allowProvisioningUpdates
+                -authenticationKeyPath "$KEY_PATH"
+                -authenticationKeyID "$KEY_ID"
+                -authenticationKeyIssuerID "$ISSUER_ID")
+
+          OVERRIDES=(DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD")
+          [ -n "$VERSION" ] && OVERRIDES+=(MARKETING_VERSION="$VERSION")
+
+          xcodebuild archive \
+            -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            "${AUTH[@]}" "${OVERRIDES[@]}" \
+            2>&1 | tee "$RUNNER_TEMP/logs/archive.log" | tail -n 40
+
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>uploadSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            "${AUTH[@]}" \
+            2>&1 | tee "$RUNNER_TEMP/logs/export-upload.log" | tail -n 40
+
+      - name: Remove the API key
+        if: always()
+        run: rm -f "$RUNNER_TEMP"/AuthKey_*.p8
+
+      - name: Summary
+        if: always()
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          {
+            echo "### iOS build"
+            if [ "$UPLOAD" = "true" ]; then
+              echo "Release run. Version \`${VERSION:-from the Xcode project}\`, build \`${BUILD}\`."
+              echo "If the upload succeeded, the build appears in App Store Connect > TestFlight after a few minutes of Apple processing."
+            else
+              echo "Check run: the app compiled for the iOS Simulator. Nothing was signed or uploaded."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs
+          path: ${{ runner.temp }}/logs/
+          if-no-files-found: ignore
+          retention-days: 14
