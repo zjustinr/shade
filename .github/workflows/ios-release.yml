@@ -49,10 +49,10 @@ jobs:
 
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -119,6 +119,45 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/derived" \
             CODE_SIGNING_ALLOWED=NO \
             2>&1 | tee "$RUNNER_TEMP/logs/simulator-build.log" | tail -n 40
+
+      - name: Check what ended up inside the app
+        # A bundle with empty web assets would still compile and still upload,
+        # and ship a blank app. Look inside the built .app instead of trusting
+        # that the earlier steps copied the right thing.
+        run: |
+          app="$RUNNER_TEMP/derived/Build/Products/Release-iphonesimulator/App.app"
+          web="$app/public"
+          fail=0
+          for f in index.html en/map/index.html zh-Hant/map/index.html vi/map/index.html \
+                   data/network.json data/destinations.geojson data/wind/ratios.json \
+                   data/wind/climate.json data/shade/index.json; do
+            if [ -f "$web/$f" ]; then echo "ok       $f"; else echo "::error::missing from the app: $f"; fail=1; fi
+          done
+          # The crew tools and the API are web-only by design; they must never ship in the app.
+          for d in field admin api; do
+            if [ -e "$web/$d" ]; then echo "::error::the app contains /$d, which must stay web-only"; fail=1; fi
+          done
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$app/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$app/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :ITSAppUsesNonExemptEncryption" "$app/Info.plist"
+          du -sh "$app"
+          exit $fail
+
+      - name: Archive for devices (unsigned, check only)
+        # The App Store build is a device (arm64) Release archive, a different
+        # compile from the Simulator one above. Prove it builds, without any
+        # signing, so a failure here is a code problem and not a credentials one.
+        if: env.UPLOAD != 'true'
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/unsigned.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$RUNNER_TEMP/logs/device-archive-unsigned.log" | tail -n 25
+          test -d "$RUNNER_TEMP/unsigned.xcarchive/Products/Applications/App.app"
+          echo "device archive produced: $(du -sh "$RUNNER_TEMP/unsigned.xcarchive" | cut -f1)"
 
       - name: Decide the version
         id: version
@@ -217,7 +256,7 @@ jobs:
 
       - name: Keep the build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ios-build-logs
           path: ${{ runner.temp }}/logs/
