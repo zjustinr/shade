@@ -19,6 +19,10 @@ export type PublicReading = {
   sunTempF: number;
   shadeTempF: number;
   deltaF: number | null;
+  /** Wind at the moment of the reading, when the crew measured it. */
+  windMph: number | null;
+  windGustMph: number | null;
+  windFrom: string | null;
   photoUrl: string | null;
   flagged: boolean;
 };
@@ -55,6 +59,9 @@ export async function getPublicReadings(): Promise<PublicReading[]> {
         sunTempF: reading.sunTempF,
         shadeTempF: reading.shadeTempF,
         deltaF: reading.deltaF,
+        windMph: reading.windMph,
+        windGustMph: reading.windGustMph,
+        windFrom: reading.windFrom,
         photoUrl: reading.photoUrl,
         flagged: reading.flagged,
       },

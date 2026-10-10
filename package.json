@@ -31,7 +31,9 @@
     "build:wind-climate": "tsx scripts/build-wind-climate.ts",
     "verify:wind": "tsx scripts/verify-wind.ts",
     "build:wind": "tsx scripts/build-wind.ts",
-    "extract:wind-context": "tsx scripts/extract-wind-context.ts"
+    "extract:wind-context": "tsx scripts/extract-wind-context.ts",
+    "compare:wind": "tsx scripts/compare-wind-field.ts",
+    "smoke:wind-field": "node scripts/smoke-wind-field.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",

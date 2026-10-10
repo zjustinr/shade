@@ -71,6 +71,20 @@
       "building": "Building",
       "bus_shelter": "Bus shelter",
       "other": "Other"
+    },
+    "windLabel": "Wind",
+    "windMean": "{mph} mph",
+    "windGust": "gusts to {mph} mph",
+    "windFromDir": "from the {dir}",
+    "dir": {
+      "N": "north",
+      "NE": "northeast",
+      "E": "east",
+      "SE": "southeast",
+      "S": "south",
+      "SW": "southwest",
+      "W": "west",
+      "NW": "northwest"
     }
   },
   "corners": {

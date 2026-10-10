@@ -46,6 +46,9 @@ export async function ReadingsTextFallback({ readings }: { readings: PublicReadi
                 <th scope="col" className="py-2 pr-3 font-semibold">
                   {tReading("shadeFrom")}
                 </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  {tReading("windLabel")}
+                </th>
                 <th scope="col" className="py-2 font-semibold">
                   {tReading("recordedAt")}
                 </th>
@@ -65,6 +68,9 @@ export async function ReadingsTextFallback({ readings }: { readings: PublicReadi
                   </td>
                   <td className="py-2 pr-3">
                     {tReading(`shadeSource.${reading.shadeSource}` as never)}
+                  </td>
+                  <td className="py-2 pr-3 tabular-nums">
+                    {reading.windMph === null ? "—" : tReading("windMean", { mph: reading.windMph })}
                   </td>
                   <td className="py-2">{formatDate(reading.recordedAt)}</td>
                 </tr>

@@ -148,15 +148,73 @@ on trips that would otherwise cross an open or channelled stretch. On a
 strong-wind day almost every street is windy and the network offers little
 relief. The listing and the UI should not promise more than this.
 
-## Validating it properly (not done yet)
+## Validating it properly
 
-The honest next step is the same one the shade model gets: measure. A
-handheld anemometer pass by the field crew at the 60 sites — mean and peak
-speed over 60 seconds, wind direction noted, plus the Logan reading for the
-same hour — would give a direct check of the model's *ranking* of streets.
-Adding optional `wind_mph` and `wind_dir` fields to the reading form is a
-small migration. Until that exists, `/about` states that the wind estimate is
-unvalidated, in all three languages.
+The field tool now records wind with every reading, so the model can be
+tested against the street. The tooling is built and tested; what is missing
+is the readings.
+
+**What the crew records** (all optional; the "Wind (optional)" group on the
+capture form, collapsed by default so the 60-second flow is unchanged):
+
+- the **average speed** over about 30 seconds, held at chest height facing
+  into the wind, and the **highest gust** in that time;
+- the **compass point the wind comes FROM**, eight points;
+- the **anemometer's unit**. Handheld anemometers show mph, m/s, km/h or
+  knots, and a m/s value typed as mph would be wrong by a factor of 2.2 with
+  nothing downstream able to tell. The form converts once and always stores
+  mph, shows "Saved as 11.2 mph average" under the boxes so a wrong unit is
+  visible, and remembers the unit between sites.
+
+Guard rails, all in `src/lib/validation.ts` and the form: a speed the server
+would reject (over 120 mph average or 150 gust) blocks the save instead of
+stranding the reading in the upload queue; text in a wind box is called out
+rather than silently dropped; over 40 mph prompts a unit check; a gust below
+the average is saved but flagged (`gust_below_mean`), like every anomaly in
+this dataset. "Not measured" is stored as null, never 0: calm is a
+measurement and absence is not.
+
+**Running the check**, once the crew has taken readings:
+
+```bash
+# admin console -> Export CSV, then:
+npm run compare:wind -- path/to/readings.csv
+```
+
+It downloads the matching hourly Logan observations, turns each crew reading
+into a ratio against Logan at that hour, and compares it with the model's
+ratio for the nearest sidewalk, using Logan's direction exactly as the app
+does. It reports rank agreement (Spearman), the median bias and the mean
+absolute error, and states a verdict only with at least 15 usable readings.
+Agreement of 0.5 or more is "agrees", 0.2 to 0.5 "weak", below 0.2
+"disagrees". If it disagrees, the app's wind figures should not be presented
+as reliable and `/about` should say so.
+
+Read the result with its limits in mind:
+
+- Each crew reading is a 30-60 second average against an hourly airport
+  observation, so single points are noisy. Trust the pattern over many.
+- Readings taken at an intersection are ambiguous between the sidewalks that
+  meet there, and the nearest-edge match can land on either. Ask the crew to
+  stand mid-block for wind readings where they can.
+- Readings more than 25 m from any sidewalk, taken in a calm Logan hour, or
+  with no Logan observation within 45 minutes are skipped and counted, not
+  quietly dropped.
+- It tests the model's *ranking* of streets. It says nothing about whether
+  the calm/breezy/windy words are the right size.
+
+The tool itself is tested end to end against synthetic readings with a known
+answer (a crew that measured exactly what the model says gives rank agreement
+1; the reverse gives -1; a uniformly twice-as-windy crew still "agrees" with a
+bias of 2; too few readings never produce a verdict), and a CSV produced by
+the real exporter, including quoted cells, was round-tripped through it
+against live Logan data.
+
+**Database:** adding the fields is migration `drizzle/0001_*.sql` (three
+nullable columns and range checks, purely additive). Run `npm run db:migrate`
+before the crew uses a version of the field tool that sends wind; until the
+columns exist the API cannot save a reading that includes them, and it stays
+in the phone's queue (not lost) until it can.
 
 ## Regenerating
 

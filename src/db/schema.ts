@@ -38,8 +38,13 @@ export const shadeSourceValues = [
 export const flagReasonValues = [
   "negative_delta",
   "implausible_delta",
+  "gust_below_mean",
   "manual",
 ] as const;
+
+/** The direction the wind blows FROM, as a crew member reads it off a
+ *  compass or a flag. Eight points is all a person can honestly judge. */
+export const windFromValues = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
 
 // The 60 planned measurement locations, seeded from a JSON fixture.
 export const sites = pgTable("sites", {
@@ -73,6 +78,15 @@ export const readings = pgTable(
     shadeTempF: real("shade_temp_f").notNull(),
     airTempF: real("air_temp_f"),
     shadeSource: text("shade_source").notNull(),
+
+    // Optional wind at the moment of the reading, always stored in mph
+    // (the capture form converts from the anemometer's own unit). Mean speed
+    // over roughly 30-60 s, the peak gust in that window, and the direction
+    // it blows from. These exist to test the wind model against the street.
+    windMph: real("wind_mph"),
+    windGustMph: real("wind_gust_mph"),
+    windFrom: text("wind_from"),
+
     deltaF: real("delta_f").generatedAlwaysAs(
       (): ReturnType<typeof sql> => sql`(sun_temp_f - shade_temp_f)`,
     ),
@@ -91,6 +105,11 @@ export const readings = pgTable(
     // (see src/lib/validation.ts); this guards direct DB writes too.
     check("readings_sun_temp_range", sql`${table.sunTempF} BETWEEN 20 AND 200`),
     check("readings_shade_temp_range", sql`${table.shadeTempF} BETWEEN 20 AND 200`),
+    check("readings_wind_range", sql`${table.windMph} IS NULL OR ${table.windMph} BETWEEN 0 AND 120`),
+    check(
+      "readings_wind_gust_range",
+      sql`${table.windGustMph} IS NULL OR ${table.windGustMph} BETWEEN 0 AND 150`,
+    ),
   ],
 );
 

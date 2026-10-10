@@ -77,6 +77,20 @@
       "building": "Toà nhà",
       "bus_shelter": "Nhà chờ xe buýt",
       "other": "Khác"
+    },
+    "windLabel": "Gió",
+    "windMean": "{mph} dặm/giờ",
+    "windGust": "giật tới {mph} dặm/giờ",
+    "windFromDir": "từ hướng {dir}",
+    "dir": {
+      "N": "Bắc",
+      "NE": "Đông Bắc",
+      "E": "Đông",
+      "SE": "Đông Nam",
+      "S": "Nam",
+      "SW": "Tây Nam",
+      "W": "Tây",
+      "NW": "Tây Bắc"
     }
   },
   "corners": {

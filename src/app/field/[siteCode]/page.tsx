@@ -6,9 +6,27 @@ import Link from "next/link";
 import { getCachedSites, queueReading, type CachedSite } from "@/lib/offline-db";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { syncPendingReadings } from "@/lib/sync";
-import { shadeSourceValues, surfaceTypeValues } from "@/db/schema";
+import { shadeSourceValues, surfaceTypeValues, windFromValues } from "@/db/schema";
+import {
+  WIND_SANITY_WARN_MPH,
+  WIND_UNITS,
+  WIND_UNIT_LABELS,
+  roundMph,
+  toMph,
+  type WindUnit,
+} from "@/lib/wind-units";
 
 const OBSERVER_KEY = "shade:observer";
+// The anemometer's unit rarely changes between sites, so remember it.
+const WIND_UNIT_KEY = "shade:wind-unit";
+
+/** Empty means "not measured"; anything typed that is not a non-negative
+ *  number is a mistake the person must see, never something to drop. */
+function parseOptionalSpeed(text: string): { value: number | null; invalid: boolean } {
+  if (text.trim() === "") return { value: null, invalid: false };
+  const n = Number(text.replace(",", "."));
+  return Number.isFinite(n) && n >= 0 ? { value: n, invalid: false } : { value: null, invalid: true };
+}
 
 export default function CapturePage({ params }: { params: Promise<{ siteCode: string }> }) {
   const { siteCode } = use(params);
@@ -22,6 +40,10 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
   const [sunTemp, setSunTemp] = useState("");
   const [shadeTemp, setShadeTemp] = useState("");
   const [airTemp, setAirTemp] = useState("");
+  const [windSpeed, setWindSpeed] = useState("");
+  const [windGust, setWindGust] = useState("");
+  const [windFrom, setWindFrom] = useState<string>("");
+  const [storedWindUnit, setWindUnit] = useLocalStorage(WIND_UNIT_KEY, "mph");
   const [shadeSource, setShadeSource] = useState<string>("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
@@ -63,12 +85,29 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
     };
   }, [photoPreview]);
 
+  // Wind is optional, always stored in mph, converted here from whatever the
+  // anemometer shows. Only mph ever leaves this form.
+  const windUnit: WindUnit = (WIND_UNITS as readonly string[]).includes(storedWindUnit)
+    ? (storedWindUnit as WindUnit)
+    : "mph";
+  const meanInput = parseOptionalSpeed(windSpeed);
+  const gustInput = parseOptionalSpeed(windGust);
+  const windMph = meanInput.value === null ? null : roundMph(toMph(meanInput.value, windUnit));
+  const windGustMph = gustInput.value === null ? null : roundMph(toMph(gustInput.value, windUnit));
+  // The server rejects values beyond these; catching them here keeps a
+  // mistyped reading from sitting in the upload queue with an error forever.
+  const windTooHigh = (windMph ?? 0) > 120 || (windGustMph ?? 0) > 150;
+  const windInvalid = meanInput.invalid || gustInput.invalid || windTooHigh;
+  const gustBelowMean = windMph !== null && windGustMph !== null && windGustMph < windMph;
+  const windVeryStrong = (windMph ?? 0) > WIND_SANITY_WARN_MPH;
+
   const canSave =
     observer.trim().length > 0 &&
     surfaceType !== "" &&
     shadeSource !== "" &&
     !Number.isNaN(sun) &&
-    !Number.isNaN(shade);
+    !Number.isNaN(shade) &&
+    !windInvalid;
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -97,6 +136,9 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
           shadeTempF: shade,
           airTempF: airTemp === "" ? null : parseFloat(airTemp),
           shadeSource: shadeSource as (typeof shadeSourceValues)[number],
+          windMph,
+          windGustMph,
+          windFrom: windFrom === "" ? null : (windFrom as (typeof windFromValues)[number]),
           photoUrl: null,
           notes: notes.trim() === "" ? null : notes.trim(),
         },
@@ -210,6 +252,119 @@ export default function CapturePage({ params }: { params: Promise<{ siteCode: st
           className="h-14 w-full rounded-lg border border-neutral-300 px-4 text-lg hc:border-yellow-400 hc:bg-black"
         />
       </Field>
+
+      {/* Optional: the 60-second capture flow must not depend on it. Opens by
+          itself when something has been entered so a filled-in value is
+          never hidden. */}
+      <details
+        className="mb-4 rounded-lg border border-neutral-300 hc:border-yellow-400"
+        open={windSpeed !== "" || windGust !== "" || windFrom !== "" ? true : undefined}
+      >
+        <summary className="flex min-h-[56px] cursor-pointer items-center px-4 text-base font-semibold">
+          Wind (optional)
+        </summary>
+        <div className="px-4 pt-1">
+          <p className="mb-3 text-sm text-neutral-600 hc:text-yellow-200">
+            Hold the anemometer at chest height, facing into the wind. Use the average over
+            about 30 seconds, and the highest gust in that time.
+          </p>
+
+          <Field label="Anemometer unit">
+            <select
+              value={windUnit}
+              onChange={(e) => setWindUnit(e.target.value)}
+              className="h-14 w-full rounded-lg border border-neutral-300 px-4 text-lg hc:border-yellow-400 hc:bg-black"
+            >
+              {WIND_UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {WIND_UNIT_LABELS[u]}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label={`Wind speed, average (${WIND_UNIT_LABELS[windUnit]})`}>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={windSpeed}
+              onChange={(e) => setWindSpeed(e.target.value)}
+              className="h-14 w-full rounded-lg border border-neutral-300 px-4 text-lg hc:border-yellow-400 hc:bg-black"
+            />
+          </Field>
+
+          <Field label={`Highest gust (${WIND_UNIT_LABELS[windUnit]})`}>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={windGust}
+              onChange={(e) => setWindGust(e.target.value)}
+              className="h-14 w-full rounded-lg border border-neutral-300 px-4 text-lg hc:border-yellow-400 hc:bg-black"
+            />
+          </Field>
+
+          {windUnit !== "mph" && (windMph !== null || windGustMph !== null) ? (
+            <p className="mb-3 text-sm font-medium" aria-live="polite">
+              Saved as{" "}
+              {[
+                windMph !== null ? `${windMph} mph average` : null,
+                windGustMph !== null ? `${windGustMph} mph gust` : null,
+              ]
+                .filter(Boolean)
+                .join(", ")}
+              .
+            </p>
+          ) : null}
+
+          <ChoiceField
+            label="Wind is coming FROM"
+            options={windFromValues}
+            value={windFrom}
+            onChange={setWindFrom}
+            name="wind-from"
+          />
+          {windFrom !== "" ? (
+            <button
+              type="button"
+              onClick={() => setWindFrom("")}
+              className="mb-3 min-h-[44px] rounded-lg border border-neutral-300 px-4 text-sm font-medium hc:border-yellow-400"
+            >
+              Clear direction
+            </button>
+          ) : null}
+
+          <div aria-live="polite" className="mb-3 flex flex-col gap-2">
+            {/* Blocking problems come first and alone: nothing else matters
+                until they are fixed. Advisory notes can stack, so that fixing
+                one never reveals another for the first time. */}
+            {meanInput.invalid || gustInput.invalid ? (
+              <p className="rounded-lg bg-red-100 px-3 py-2 text-sm text-red-900 hc:bg-black hc:text-yellow-300 hc:border hc:border-yellow-400">
+                Wind speeds must be numbers, zero or more. Fix them or clear the box to save.
+              </p>
+            ) : windTooHigh ? (
+              <p className="rounded-lg bg-red-100 px-3 py-2 text-sm text-red-900 hc:bg-black hc:text-yellow-300 hc:border hc:border-yellow-400">
+                That is stronger than any wind we could record here (120 mph average, 150 mph
+                gust). Check the unit above.
+              </p>
+            ) : (
+              <>
+                {windVeryStrong ? (
+                  <p className="rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-900 hc:bg-black hc:text-yellow-300 hc:border hc:border-yellow-400">
+                    Over {WIND_SANITY_WARN_MPH} mph is a very strong wind. Check the unit above is
+                    the one your anemometer is showing.
+                  </p>
+                ) : null}
+                {gustBelowMean ? (
+                  <p className="rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-900 hc:bg-black hc:text-yellow-300 hc:border hc:border-yellow-400">
+                    The gust is lower than the average, which cannot be. Check both numbers, then
+                    save anyway. It will be flagged for review, not thrown away.
+                  </p>
+                ) : null}
+              </>
+            )}
+          </div>
+        </div>
+      </details>
 
       <ChoiceField
         label="What is making the shade?"

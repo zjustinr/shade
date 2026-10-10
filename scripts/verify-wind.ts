@@ -10,6 +10,17 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { SECTOR_COUNT, SECTOR_NAMES, sectorOf, typicalWind, windFeel } from "../src/lib/wind";
 import type { WindClimate } from "../src/lib/wind";
+import { WIND_UNITS, roundMph, toMph } from "../src/lib/wind-units";
+import { classifyReading, readingInputSchema } from "../src/lib/validation";
+import {
+  MIN_READINGS_FOR_VERDICT,
+  compareWindToCrew,
+  nearestEdge,
+  spearman,
+  type FieldWindReading,
+  type LoganObservation,
+} from "../src/lib/wind-validation";
+import type { WalkNetwork } from "../src/lib/network";
 import {
   RATIO_CAP,
   RATIO_DENSE,
@@ -328,6 +339,125 @@ console.log("\nShipped wind data");
       `(${winterNoon?.speedMph} mph)`,
     );
   }
+}
+
+console.log("\nField wind readings: units");
+{
+  check("mph is the identity", toMph(10, "mph") === 10);
+  check("10 m/s is 22.4 mph", near(toMph(10, "ms"), 22.37, 0.01));
+  check("10 km/h is 6.2 mph", near(toMph(10, "kmh"), 6.21, 0.01));
+  check("10 knots is 11.5 mph", near(toMph(10, "knots"), 11.51, 0.01));
+  check("all four units are offered", WIND_UNITS.length === 4);
+  check("stored values round to one decimal", roundMph(7.8473) === 7.8 && roundMph(7.85) === 7.9);
+  check("zero stays zero (a calm reading is data)", toMph(0, "ms") === 0);
+}
+
+console.log("\nField wind readings: validation and flags");
+{
+  const base = {
+    id: "3f6c1d2e-8a4b-4c1e-9d7a-2b5f0c9e1a11",
+    siteId: 1,
+    observer: "Mei",
+    recordedAt: "2026-10-10T18:30:00.000Z",
+    surfaceType: "asphalt",
+    sunTempF: 120,
+    shadeTempF: 98,
+    shadeSource: "tree",
+  } as const;
+
+  check("a reading with no wind is still valid (wind is optional)", readingInputSchema.safeParse(base).success);
+  check(
+    "a reading with full wind data is valid",
+    readingInputSchema.safeParse({ ...base, windMph: 7.5, windGustMph: 12, windFrom: "W" }).success,
+  );
+  check("explicit nulls are accepted (older clients, cleared fields)", readingInputSchema.safeParse({ ...base, windMph: null, windGustMph: null, windFrom: null }).success);
+  check("zero wind is accepted (calm is a measurement)", readingInputSchema.safeParse({ ...base, windMph: 0 }).success);
+  check("negative wind is rejected", !readingInputSchema.safeParse({ ...base, windMph: -1 }).success);
+  check("a 121 mph average is rejected", !readingInputSchema.safeParse({ ...base, windMph: 121 }).success);
+  check("a 151 mph gust is rejected", !readingInputSchema.safeParse({ ...base, windGustMph: 151 }).success);
+  check("an invalid compass point is rejected", !readingInputSchema.safeParse({ ...base, windFrom: "NNE" }).success);
+  check("wind as text is rejected", !readingInputSchema.safeParse({ ...base, windMph: "windy" }).success);
+
+  check("no wind: no flag", !classifyReading({ sunTempF: 120, shadeTempF: 98 }).flagged);
+  check("gust above mean: no flag", !classifyReading({ sunTempF: 120, shadeTempF: 98, windMph: 7, windGustMph: 12 }).flagged);
+  check("gust equal to mean: no flag", !classifyReading({ sunTempF: 120, shadeTempF: 98, windMph: 7, windGustMph: 7 }).flagged);
+  const impossible = classifyReading({ sunTempF: 120, shadeTempF: 98, windMph: 12, windGustMph: 7 });
+  check("gust below mean is flagged, with its own reason", impossible.flagged && impossible.flagReason === "gust_below_mean");
+  const both = classifyReading({ sunTempF: 90, shadeTempF: 98, windMph: 12, windGustMph: 7 });
+  check("a temperature anomaly takes precedence over a wind one", both.flagReason === "negative_delta");
+  check("a gust alone (no mean) is not flagged", !classifyReading({ sunTempF: 120, shadeTempF: 98, windGustMph: 7 }).flagged);
+}
+
+console.log("\nChecking the wind model against the crew");
+{
+  // A straight street running north-south at lng -71.06, three parallel
+  // streets 100 m apart so each reading has an unambiguous nearest edge.
+  const lngs = [-71.0600, -71.0588, -71.0576];
+  const nodes = lngs.flatMap((lng) => [
+    { c: [lng, 42.350] as [number, number] },
+    { c: [lng, 42.352] as [number, number] },
+  ]);
+  const edges = lngs.map((_, i) => ({ a: i * 2, b: i * 2 + 1, len: 222, name: `Street ${i}`, geom: [] as [number, number][] }));
+  const adj = nodes.map((_, n) => [Math.floor(n / 2)]);
+  const network: WalkNetwork = { generatedAt: "", nodes, edges, adj };
+
+  const near1 = nearestEdge(network, [-71.0588, 42.351]);
+  check("the nearest edge to a point on a street is that street", near1?.edge === 1 && near1.distanceM < 1, `(${JSON.stringify(near1)})`);
+  const mid = nearestEdge(network, [-71.0585, 42.351]);
+  check("a point 25 m off a street is still nearest to it", mid?.edge === 1 && near(mid.distanceM, 25, 3), `(${JSON.stringify(mid)})`);
+  check("a point far from every street reports its distance", (nearestEdge(network, [-71.0500, 42.351])?.distanceM ?? 0) > 500);
+
+  // Model: street 0 sheltered (0.30), street 1 middling (0.50), street 2 exposed (0.90),
+  // identical for every sector so the test isolates ranking, not direction.
+  const ratios = Array.from({ length: 16 }, () => [30, 50, 90]);
+  const model = { ratios };
+
+  const t0 = new Date("2026-10-10T18:00:00.000Z");
+  const loganAt = (mph: number): LoganObservation[] => [{ time: t0.toISOString(), mph, fromDeg: 270 }];
+  const reading = (i: number, streetLng: number, mph: number): FieldWindReading => ({
+    id: `r${i}`, siteCode: `CT-${i}`, recordedAt: new Date(t0.getTime() + 5 * 60_000).toISOString(),
+    lat: 42.351, lng: streetLng, windMph: mph, windGustMph: null, windFrom: i % 2 ? "W" : null,
+  });
+  const many = (measure: (modelRatio: number) => number, n = 18): FieldWindReading[] =>
+    Array.from({ length: n }, (_, i) => {
+      const street = i % 3;
+      return reading(i, lngs[street], measure([0.30, 0.50, 0.90][street]) * 15);
+    });
+
+  const perfect = compareWindToCrew(network, model, many((r) => r), loganAt(15));
+  check("every on-network reading is used", perfect.n === 18, `(n=${perfect.n}, skipped ${JSON.stringify(perfect.skipped)})`);
+  check("a crew that measured exactly what the model says: rank agreement 1", perfect.spearman !== null && near(perfect.spearman, 1, 1e-9));
+  check("... and the verdict is 'agrees'", perfect.verdict === "agrees");
+  check("... with no bias and no error", near(perfect.medianBias ?? 99, 1, 1e-9) && near(perfect.meanAbsError ?? 99, 0, 1e-9));
+  check("the ratio is measured speed over Logan's speed", near(perfect.rows[0].measuredRatio, 0.30, 1e-9));
+
+  const backwards = compareWindToCrew(network, model, many((r) => 1.2 - r), loganAt(15));
+  check("a street the model calls calm that the crew finds windy: rank agreement -1", backwards.spearman !== null && near(backwards.spearman, -1, 1e-9));
+  check("... and the verdict is 'disagrees'", backwards.verdict === "disagrees");
+
+  const biased = compareWindToCrew(network, model, many((r) => r * 2), loganAt(15));
+  check("a crew that finds everything twice as windy: ranking still agrees, bias is 2", biased.verdict === "agrees" && near(biased.medianBias ?? 0, 2, 1e-9));
+
+  const noisy = compareWindToCrew(network, model, many(() => 0.4), loganAt(15));
+  check("identical readings everywhere give no rank agreement to claim (undefined, not zero)", noisy.spearman === null && noisy.verdict === "insufficient");
+
+  const few = compareWindToCrew(network, model, many((r) => r, MIN_READINGS_FOR_VERDICT - 1), loganAt(15));
+  check("too few readings never produce a verdict", few.verdict === "insufficient", `(n=${few.n})`);
+
+  const skippedTime = compareWindToCrew(network, model, many((r) => r), [
+    { time: new Date(t0.getTime() - 6 * 3600_000).toISOString(), mph: 15, fromDeg: 270 },
+  ]);
+  check("readings with no Logan observation within 45 minutes are skipped, and counted", skippedTime.n === 0 && skippedTime.skipped["no-logan-observation"] === 18);
+
+  const calm = compareWindToCrew(network, model, many((r) => r), [{ time: t0.toISOString(), mph: 1, fromDeg: null }]);
+  check("a calm Logan hour is skipped (a ratio to nothing means nothing)", calm.n === 0 && calm.skipped["logan-calm"] === 18);
+
+  const farAway = compareWindToCrew(network, model, [{ ...reading(0, -71.0500, 5) }], loganAt(15));
+  check("a reading nowhere near a sidewalk is skipped, and counted", farAway.n === 0 && farAway.skipped["far-from-network"] === 1);
+
+  check("spearman of identical orderings is 1", spearman([1, 2, 3, 4], [10, 20, 30, 40]) === 1);
+  check("spearman handles ties without inventing order", near(spearman([1, 1, 2, 2], [1, 2, 3, 4]) ?? 0, 0.894, 0.01));
+  check("spearman of a constant series is undefined", spearman([1, 1, 1], [1, 2, 3]) === null);
 }
 
 console.log(

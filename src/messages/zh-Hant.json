@@ -77,6 +77,20 @@
       "building": "樓宇",
       "bus_shelter": "候車亭",
       "other": "其他"
+    },
+    "windLabel": "風",
+    "windMean": "{mph} 英里／小時",
+    "windGust": "陣風至 {mph} 英里／小時",
+    "windFromDir": "來自{dir}",
+    "dir": {
+      "N": "北",
+      "NE": "東北",
+      "E": "東",
+      "SE": "東南",
+      "S": "南",
+      "SW": "西南",
+      "W": "西",
+      "NW": "西北"
     }
   },
   "corners": {

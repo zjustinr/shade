@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, readings } from "@/db";
-import { classifyDelta, readingInputSchema } from "@/lib/validation";
+import { classifyReading, readingInputSchema } from "@/lib/validation";
 import { requireCrewAuth } from "@/lib/require-auth";
 import { isRateLimited } from "@/lib/rate-limit";
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const { flagged, flagReason } = classifyDelta(input.sunTempF, input.shadeTempF);
+  const { flagged, flagReason } = classifyReading(input);
 
   const [saved] = await db
     .insert(readings)
@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
       shadeTempF: input.shadeTempF,
       airTempF: input.airTempF ?? null,
       shadeSource: input.shadeSource,
+      windMph: input.windMph ?? null,
+      windGustMph: input.windGustMph ?? null,
+      windFrom: input.windFrom ?? null,
       photoUrl: input.photoUrl ?? null,
       notes: input.notes ?? null,
       flagged,
@@ -67,6 +70,9 @@ export async function POST(request: NextRequest) {
         shadeTempF: input.shadeTempF,
         airTempF: input.airTempF ?? null,
         shadeSource: input.shadeSource,
+        windMph: input.windMph ?? null,
+        windGustMph: input.windGustMph ?? null,
+        windFrom: input.windFrom ?? null,
         photoUrl: input.photoUrl ?? null,
         notes: input.notes ?? null,
         flagged,
@@ -97,6 +103,9 @@ export async function GET(request: NextRequest) {
     shadeTempF: r.shadeTempF,
     deltaF: r.deltaF,
     shadeSource: r.shadeSource,
+    windMph: r.windMph,
+    windGustMph: r.windGustMph,
+    windFrom: r.windFrom,
     photoUrl: r.photoUrl,
     flagged: r.flagged,
     flagReason: r.flagReason,

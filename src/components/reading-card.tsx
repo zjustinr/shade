@@ -63,6 +63,24 @@ export function ReadingCard({
         <dd>{t(`surfaceType.${reading.surfaceType}` as never)}</dd>
         <dt className="text-neutral-600">{t("shadeFrom")}</dt>
         <dd>{t(`shadeSource.${reading.shadeSource}` as never)}</dd>
+        {reading.windMph !== null ? (
+          <>
+            <dt className="text-neutral-600">{t("windLabel")}</dt>
+            <dd>
+              {[
+                t("windMean", { mph: reading.windMph }),
+                reading.windFrom
+                  ? t("windFromDir", { dir: t(`dir.${reading.windFrom}` as never) })
+                  : null,
+                reading.windGustMph !== null
+                  ? t("windGust", { mph: reading.windGustMph })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(", ")}
+            </dd>
+          </>
+        ) : null}
         <dt className="text-neutral-600">{t("recordedAt")}</dt>
         <dd>{recorded}</dd>
       </dl>

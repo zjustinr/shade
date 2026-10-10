@@ -14,6 +14,9 @@ export type AdminReadingRow = {
   sunTempF: number;
   shadeTempF: number;
   deltaF: number | null;
+  windMph: number | null;
+  windGustMph: number | null;
+  windFrom: string | null;
   photoUrl: string | null;
   notes: string | null;
   flagged: boolean;
@@ -96,6 +99,7 @@ export function ReadingsTable({ rows }: { rows: AdminReadingRow[] }) {
               <SortHeader label="Δ°F" align="right" active={sortKey === "deltaF"} onClick={() => toggleSort("deltaF")} />
               <th className="py-2 font-medium">Surface</th>
               <th className="py-2 font-medium">Shade source</th>
+              <th className="py-2 font-medium">Wind</th>
               <th className="py-2 font-medium">Photo</th>
               <th className="py-2 font-medium">Flag</th>
             </tr>
@@ -119,6 +123,13 @@ export function ReadingsTable({ rows }: { rows: AdminReadingRow[] }) {
                 </td>
                 <td className="py-2 capitalize">{row.surfaceType}</td>
                 <td className="py-2 capitalize">{row.shadeSource.replace("_", " ")}</td>
+                <td className="py-2 whitespace-nowrap tabular-nums">
+                  {row.windMph === null
+                    ? "—"
+                    : `${row.windMph} mph${row.windGustMph !== null ? ` (gust ${row.windGustMph})` : ""}${
+                        row.windFrom ? ` from ${row.windFrom}` : ""
+                      }`}
+                </td>
                 <td className="py-2">
                   {row.photoUrl ? (
                     <a href={row.photoUrl} target="_blank" rel="noreferrer" className="underline">

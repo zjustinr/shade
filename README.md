@@ -78,7 +78,9 @@ computation. The City APIs are never called at request time.
 | `npm run build:wind-climate` | Rebuild typical wind from 16 years of Logan observations |
 | `npm run extract:wind-context` | Fetch the padded footprints the wind model needs |
 | `npm run build:wind` | Rebuild the per-sidewalk wind model |
-| `npm run verify:wind` | Assert the wind model's physical orderings and the shipped data |
+| `npm run verify:wind` | Assert the wind model, the field-wind logic and the shipped data |
+| `npm run compare:wind -- readings.csv` | Test the wind model against the crew's measured wind (admin CSV export) |
+| `npm run smoke:wind-field` | Browser test: wind fields on the field capture form |
 | `npm run verify:shade` | Assert the solar geometry against physics |
 | `npm run verify:routing` | Assert the route planner on a synthetic grid |
 | `npm run verify:network` | Assert the real graph: connected, covers the bbox, sane distances |
