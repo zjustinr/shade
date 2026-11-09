@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "./language-switcher";
+import { Logo } from "./logo";
 
 export async function SiteHeader() {
   const t = await getTranslations("nav");
@@ -16,7 +17,8 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-neutral-200">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
-        <Link href="/" className="text-lg font-bold">
+        <Link href="/" className="flex items-center gap-2.5 text-lg font-bold">
+          <Logo className="h-12 w-12 shrink-0" />
           {tSite("name")}
         </Link>
         {/* Language switcher sits in the header so it is above the fold on
