@@ -185,8 +185,8 @@ export default async function AboutPage({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-8">
-      <h2 className="text-2xl font-semibold">{title}</h2>
+    <section className="mt-8 border-l-4 border-accent-line pl-4">
+      <h2 className="text-2xl font-bold text-accent-ink">{title}</h2>
       <div className="mt-2 leading-relaxed">{children}</div>
     </section>
   );
@@ -194,7 +194,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-neutral-200 px-3 py-2">
+    <div className="rounded-lg border border-accent-line bg-accent-soft px-3 py-2">
       <dt className="text-neutral-600">{label}</dt>
       <dd className="text-xl font-bold tabular-nums">{value}</dd>
     </div>

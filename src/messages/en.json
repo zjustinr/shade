@@ -19,7 +19,11 @@
     "aboutLink": "How this was made",
     "coolingHeading": "Looking for an air-conditioned place?",
     "coolingBody": "The City of Boston runs a map of pools, splash pads, libraries and cooling centres. This site does not duplicate it.",
-    "coolingLink": "Indoor cooling centers → City of Boston map"
+    "coolingLink": "Indoor cooling centers → City of Boston map",
+    "exploreHeading": "Where would you like to start?",
+    "cardMap": "See the shade, the wind and the sunny spots hour by hour, and plan a walk that suits the weather.",
+    "cardCorners": "The shaded seating spots the neighbourhood is building.",
+    "cardAbout": "How the map is made, how far to trust it, and where the data comes from."
   },
   "map": {
     "heading": "Shade map",

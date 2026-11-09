@@ -85,6 +85,8 @@ computation. The City APIs are never called at request time.
 | `npm run verify:routing` | Assert the route planner on a synthetic grid |
 | `npm run verify:network` | Assert the real graph: connected, covers the bbox, sane distances |
 | `npm run check:i18n` | Catalogs in sync + translation review status |
+| `npm run verify:theme` | Assert the public colour system: contrast ratios and colour-blind separation, read from `globals.css` |
+| `npm run build:icons` | Re-render the favicon, PWA and App Store icons from `brand/logo-mark.svg` |
 | `npm run smoke:map` | Browser test: are shadows actually painted? |
 | `npm run smoke:offline` | Browser test: airplane-mode field capture |
 | `npm run smoke:routes` | Browser test: destinations + shaded route planner |
@@ -107,6 +109,19 @@ fully static export that works offline and refreshes readings from the
 production API. `npm run build:ios` produces the bundle; everything else —
 Mac setup, App Store submission, review strategy, the $99/yr caveat — is
 in `docs/ios-app-store.md`. The Field Tool stays web-only on purpose.
+
+## Look and feel
+
+The public site has one calm base (warm paper, soft ink, Public Sans for English
+and Vietnamese, each device's own Traditional Chinese face for 中文) and one
+accent family per page: sun for Home, sky for the shade map, leaf for Cool
+Corners, berry for About. The accent fades from one to the next as you move
+around. Only the chrome is themed; the shade, wind and route colours on the map
+carry meaning and never change. The palette lives in `src/app/globals.css`
+(`[data-page]` blocks) and `npm run verify:theme` fails if a change breaks AAA
+contrast or makes two page colours hard to tell apart for common colour-vision
+differences. Colour is never the only signal: every page also says where you are
+in words (the nav's current page, the heading).
 
 ## Things that will bite you
 

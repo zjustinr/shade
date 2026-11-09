@@ -25,7 +25,11 @@
     "aboutLink": "Bản đồ này được làm thế nào",
     "coolingHeading": "Bạn đang tìm nơi có máy lạnh?",
     "coolingBody": "Thành phố Boston có sẵn bản đồ các hồ bơi, khu phun nước, thư viện và trung tâm tránh nóng. Trang này không làm lại dịch vụ đó.",
-    "coolingLink": "Trung tâm tránh nóng trong nhà → Bản đồ Thành phố Boston"
+    "coolingLink": "Trung tâm tránh nóng trong nhà → Bản đồ Thành phố Boston",
+    "exploreHeading": "Bạn muốn bắt đầu từ đâu?",
+    "cardMap": "Xem bóng râm, gió và những chỗ có nắng theo từng giờ, rồi lên đường đi bộ hợp với thời tiết.",
+    "cardCorners": "Những góc ngồi có bóng mát mà khu phố đang xây dựng.",
+    "cardAbout": "Bản đồ được làm thế nào, đáng tin đến đâu và dữ liệu đến từ đâu."
   },
   "map": {
     "heading": "Bản đồ bóng mát",

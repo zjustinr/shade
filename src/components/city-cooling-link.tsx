@@ -17,7 +17,7 @@ export async function CityCoolingLink({ className = "" }: { className?: string }
       href={url}
       target="_blank"
       rel="noreferrer noopener"
-      className={`inline-flex min-h-[56px] items-center gap-2 rounded-xl border-2 border-blue-700 px-5 text-base font-semibold text-blue-800 ${className}`}
+      className={`inline-flex min-h-[56px] items-center gap-2 rounded-xl border-2 border-accent bg-paper px-5 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-soft ${className}`}
     >
       {t("cityCoolingLink")}
       <span aria-hidden>↗</span>

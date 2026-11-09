@@ -961,7 +961,7 @@ export function ShadeMap({
             setPicking(null);
           }}
           aria-expanded={planning}
-          className="min-h-[56px] w-full rounded-xl bg-neutral-900 px-6 text-lg font-semibold text-white sm:w-auto"
+          className="min-h-[56px] w-full rounded-xl bg-accent px-6 text-lg font-semibold text-on-accent transition-colors hover:bg-accent-ink sm:w-auto"
         >
           {tRoute("title")}
         </button>

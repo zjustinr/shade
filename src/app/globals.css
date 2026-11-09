@@ -11,8 +11,166 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-wash: var(--accent-wash);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-line: var(--accent-line);
+  --color-on-accent: #ffffff;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+
+/*
+ * Public-site colour system.
+ *
+ * One calm base (warm paper, soft ink: no pure white, no pure black, easier
+ * on the eyes for long reading) and one accent family per page. The accent
+ * shifts as you move between pages, so each place in the site feels a little
+ * different, but only the *chrome* changes: the shade, wind and route colours
+ * on the map carry meaning and are never themed.
+ *
+ *   --accent        fills: buttons, the header bar. White text on it passes AAA.
+ *   --accent-ink    text and icons on paper or on --accent-soft. Passes AAA.
+ *   --accent-soft   quiet tinted surfaces (cards, active nav, footer).
+ *   --accent-wash   the faint glow behind the top of the page.
+ *   --accent-line   borders. Decorative only, never the sole carrier of meaning.
+ *
+ * Hues are chosen to stay apart for common colour-vision differences and
+ * differ in lightness too, and every page also says where you are in words
+ * (nav label, heading). scripts/verify-theme.ts checks the contrast ratios
+ * and the colour-blind separation straight from the values below.
+ *
+ * Custom properties are registered so the shift between pages fades instead
+ * of snapping; reduced-motion users get it instantly (rule further down).
+ */
+@property --accent { syntax: "<color>"; inherits: true; initial-value: #913f08; }
+@property --accent-soft { syntax: "<color>"; inherits: true; initial-value: #fbefe6; }
+@property --accent-wash { syntax: "<color>"; inherits: true; initial-value: #fdece0; }
+@property --accent-ink { syntax: "<color>"; inherits: true; initial-value: #3d1f0b; }
+@property --accent-line { syntax: "<color>"; inherits: true; initial-value: #dbb194; }
+
+:root {
+  --paper: #fbf8f2;
+  --ink: #1e2633;
+  --accent: #913f08;
+  --accent-soft: #fbefe6;
+  --accent-wash: #fdece0;
+  --accent-ink: #3d1f0b;
+  --accent-line: #dbb194;
+}
+
+/* Home: the sun. */
+[data-page="home"] {
+  --accent: #913f08;
+  --accent-soft: #fbefe6;
+  --accent-wash: #fdece0;
+  --accent-ink: #3d1f0b;
+  --accent-line: #dbb194;
+}
+/* Shade map and walking routes: open sky. */
+[data-page="map"] {
+  --accent: #0e57aa;
+  --accent-soft: #e6f0fb;
+  --accent-wash: #e0eefd;
+  --accent-ink: #0b223d;
+  --accent-line: #94b5db;
+}
+/* Cool Corners: leaf. */
+[data-page="corners"] {
+  --accent: #126441;
+  --accent-soft: #e6fbf3;
+  --accent-wash: #e0fdf0;
+  --accent-ink: #0b3d27;
+  --accent-line: #94dbbd;
+}
+/* About: berry. */
+[data-page="about"] {
+  --accent: #893b6f;
+  --accent-soft: #fbe6f4;
+  --accent-wash: #fde0f3;
+  --accent-ink: #3d0b2c;
+  --accent-line: #db94c3;
+}
+/* Printed block sheets stay neutral: ink on paper. */
+[data-page="print"] {
+  --accent: #374151;
+  --accent-soft: #f3f4f6;
+  --accent-wash: #ffffff;
+  --accent-ink: #111827;
+  --accent-line: #d1d5db;
+}
+
+.site-shell {
+  background:
+    radial-gradient(900px 420px at 88% -6%, var(--accent-wash), transparent 70%),
+    var(--paper);
+  color: var(--ink);
+  transition:
+    --accent 700ms ease,
+    --accent-soft 700ms ease,
+    --accent-wash 700ms ease,
+    --accent-ink 700ms ease,
+    --accent-line 700ms ease;
+}
+/*
+ * Type: Public Sans for Latin and Vietnamese (clear letterforms, generous
+ * x-height, built for public-service reading, formal without being stiff),
+ * with each device's own Traditional Chinese face for 中文: PingFang TC on
+ * Apple, Noto Sans TC on Android, Microsoft JhengHei on Windows. Using the
+ * system CJK face keeps the page fast and offline-safe in the iOS app (a
+ * bundled CJK font would add megabytes), and the browser mixes the two
+ * per character so a Chinese sentence containing "Chinatown" still reads
+ * as one voice.
+ */
+.site-shell {
+  font-family:
+    var(--font-body), "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Heiti TC",
+    "Noto Sans CJK TC", system-ui, sans-serif;
+  line-height: 1.6;
+  font-size: 1.0625rem;
+}
+.site-shell h1,
+.site-shell h2,
+.site-shell h3 {
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.site-shell main h1 {
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+/* Chinese reads best a touch looser and without negative tracking. */
+.site-shell:lang(zh-Hant) {
+  line-height: 1.75;
+}
+.site-shell:lang(zh-Hant) h1,
+.site-shell:lang(zh-Hant) h2,
+.site-shell:lang(zh-Hant) h3 {
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+/* Cards that invite a click: lift a touch, nudge the arrow. */
+.explore-card {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+.explore-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -12px var(--accent);
+  border-color: var(--accent);
+}
+.explore-card .explore-arrow {
+  transition: transform 160ms ease;
+}
+.explore-card:hover .explore-arrow {
+  transform: translateX(4px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -55,11 +213,15 @@ body {
  * one sheet, ink-economical.
  */
 @media print {
-  body:has(.print-sheet) > header,
-  body:has(.print-sheet) > footer,
-  body:has(.print-sheet) > aside,
+  body:has(.print-sheet) .site-shell > header,
+  body:has(.print-sheet) .site-shell > footer,
+  body:has(.print-sheet) .site-shell > aside,
   body:has(.print-sheet) a[href="#main"] {
     display: none !important;
+  }
+
+  .site-shell {
+    background: #fff !important;
   }
 
   .print-sheet {

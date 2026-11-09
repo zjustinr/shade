@@ -219,9 +219,9 @@ export function RoutePlanner({
                 className="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0"
               />
               <span
-                className={`flex min-h-[44px] w-full items-center justify-center rounded-lg border-2 px-3 text-center text-sm font-medium peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600 ${
+                className={`flex min-h-[44px] w-full items-center justify-center rounded-lg border-2 px-3 text-center text-sm font-medium peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-ink ${
                   preference === value
-                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    ? "border-accent bg-accent text-on-accent"
                     : "border-neutral-300"
                 }`}
               >
@@ -259,9 +259,9 @@ export function RoutePlanner({
                   className="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0"
                 />
                 <span
-                  className={`flex min-h-[44px] w-full items-center justify-center rounded-lg border-2 px-3 text-center text-sm font-medium peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600 ${
+                  className={`flex min-h-[44px] w-full items-center justify-center rounded-lg border-2 px-3 text-center text-sm font-medium peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-ink ${
                     wind.pref === value
-                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      ? "border-accent bg-accent text-on-accent"
                       : "border-neutral-300"
                   }`}
                 >
@@ -474,7 +474,7 @@ function PointButton({
       aria-pressed={active}
       className={`flex min-h-[56px] flex-col items-start rounded-lg border-2 px-3 py-2 text-left ${
         active
-          ? "border-blue-700 bg-blue-50"
+          ? "border-accent bg-accent-soft"
           : point
             ? "border-neutral-400"
             : "border-dashed border-neutral-400"

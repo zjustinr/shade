@@ -32,13 +32,13 @@ export default async function CornersPage({
       <p className="mt-3 text-lg leading-relaxed">{t("intro")}</p>
 
       {corners.length === 0 ? (
-        <p className="mt-8 rounded-lg border border-neutral-200 p-4 text-neutral-700">
+        <p className="mt-8 rounded-2xl border-2 border-accent-line bg-accent-soft p-4 text-ink">
           {t("empty")}
         </p>
       ) : (
         <ul className="mt-8 flex flex-col gap-6">
           {corners.map((corner) => (
-            <li key={corner.id} className="rounded-xl border border-neutral-200 p-5">
+            <li key={corner.id} className="rounded-2xl border-2 border-accent-line bg-accent-soft p-5">
               <h2 className="text-2xl font-semibold">{corner.name}</h2>
               {corner.description ? (
                 <p className="mt-2 leading-relaxed">{corner.description}</p>

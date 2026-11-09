@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
       {locales.map((locale, index) => (
         <span key={locale} className="flex items-center gap-1">
           {index > 0 ? (
-            <span aria-hidden className="text-neutral-400">
+            <span aria-hidden className="text-accent-line">
               ·
             </span>
           ) : null}
@@ -32,8 +32,8 @@ export function LanguageSwitcher() {
             aria-current={locale === active ? "true" : undefined}
             className={`inline-flex min-h-[44px] items-center rounded px-2 py-1 ${
               locale === active
-                ? "font-bold text-neutral-900 underline underline-offset-4"
-                : "text-neutral-700 underline underline-offset-4 hover:text-neutral-900"
+                ? "bg-accent-soft font-bold text-accent-ink underline decoration-2 underline-offset-4"
+                : "text-ink underline underline-offset-4 hover:bg-accent-soft hover:text-accent-ink"
             }`}
           >
             {localeNames[locale as Locale]}

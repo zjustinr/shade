@@ -77,7 +77,7 @@ export default async function MapPage({
             <li key={block.code}>
               <Link
                 href={`/print/${block.code}`}
-                className="inline-flex min-h-[44px] items-center rounded-lg border border-neutral-300 px-4 underline-offset-4 hover:underline"
+                className="inline-flex min-h-[44px] items-center rounded-lg border-2 border-accent-line bg-paper px-4 text-accent-ink underline-offset-4 transition-colors hover:bg-accent-soft hover:underline"
               >
                 {block.nameEn}
               </Link>

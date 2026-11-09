@@ -10,7 +10,7 @@ export default async function LocaleNotFound() {
       <p className="mt-3 text-lg">{t("notFoundBody")}</p>
       <Link
         href="/"
-        className="mt-6 inline-flex min-h-[56px] items-center rounded-xl bg-neutral-900 px-6 text-lg font-semibold text-white"
+        className="mt-6 inline-flex min-h-[56px] items-center rounded-xl bg-accent px-6 text-lg font-semibold text-on-accent transition-colors hover:bg-accent-ink"
       >
         {t("backHome")}
       </Link>
