@@ -50,16 +50,20 @@ async function main() {
       spatialRel: "esriSpatialRelIntersects",
       outSR: "4326",
       f: "geojson",
+      orderByFields: "OBJECTID",
       resultOffset: String(offset),
       resultRecordCount: String(PAGE_SIZE),
     });
     const res = await fetch(`${BUILDINGS_URL}?${params}`);
     if (!res.ok) throw new Error(`${BUILDINGS_URL} responded ${res.status}`);
-    const page = (await res.json()) as { features?: Feature[]; error?: { message: string } };
+    const page = (await res.json()) as { features?: Feature[]; exceededTransferLimit?: boolean; error?: { message: string } };
     if (page.error) throw new Error(page.error.message);
     const batch = page.features ?? [];
     raw.push(...batch);
-    if (batch.length < PAGE_SIZE) break;
+    // A page can come back short when rows with no usable geometry are
+    // dropped, so a short page does not mean the last page. Stop only on
+    // an empty page or when the server says nothing more is waiting.
+    if (batch.length === 0 || (!page.exceededTransferLimit && batch.length < PAGE_SIZE)) break;
   }
 
   // One feature per polygon: a MultiPolygon becomes several obstacles.

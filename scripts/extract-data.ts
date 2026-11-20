@@ -58,6 +58,7 @@ async function fetchAllPages(
       where: "1=1",
       outFields,
       ...bboxParams(),
+      orderByFields: "OBJECTID",
       resultOffset: String(offset),
       resultRecordCount: String(PAGE_SIZE),
     });
@@ -66,12 +67,15 @@ async function fetchAllPages(
     if (!res.ok) {
       throw new Error(`${baseUrl} responded ${res.status} ${res.statusText}`);
     }
-    const page = (await res.json()) as FeatureCollection & { error?: { message: string } };
+    const page = (await res.json()) as FeatureCollection & { exceededTransferLimit?: boolean; error?: { message: string } };
     if (page.error) throw new Error(`ArcGIS error: ${page.error.message}`);
 
     const batch = page.features ?? [];
     features.push(...batch);
-    if (batch.length < PAGE_SIZE) break;
+    // A page can come back short when rows with no usable geometry are
+    // dropped, so a short page does not mean the last page. Stop only on
+    // an empty page or when the server says nothing more is waiting.
+    if (batch.length === 0 || (!page.exceededTransferLimit && batch.length < PAGE_SIZE)) break;
     offset += PAGE_SIZE;
   }
 
