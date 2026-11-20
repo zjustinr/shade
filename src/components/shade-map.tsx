@@ -14,7 +14,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocale, useTranslations } from "next-intl";
 import type { FeatureCollection } from "geojson";
-import { CHINATOWN_BBOX_ARRAY, CHINATOWN_CENTRE } from "@/lib/chinatown";
+import { CHINATOWN_CENTRE, STUDY_AREA_BBOX_ARRAY } from "@/lib/chinatown";
 import {
   formatSlotLabel,
   nearestShadeDate,
@@ -296,8 +296,8 @@ export function ShadeMap({
       center: [CHINATOWN_CENTRE.lng, CHINATOWN_CENTRE.lat],
       zoom: 15.2,
       maxBounds: [
-        [CHINATOWN_BBOX_ARRAY[0] - 0.01, CHINATOWN_BBOX_ARRAY[1] - 0.01],
-        [CHINATOWN_BBOX_ARRAY[2] + 0.01, CHINATOWN_BBOX_ARRAY[3] + 0.01],
+        [STUDY_AREA_BBOX_ARRAY[0] - 0.01, STUDY_AREA_BBOX_ARRAY[1] - 0.01],
+        [STUDY_AREA_BBOX_ARRAY[2] + 0.01, STUDY_AREA_BBOX_ARRAY[3] + 0.01],
       ],
       attributionControl: false,
     });

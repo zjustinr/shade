@@ -135,7 +135,7 @@
     "windLimitScreening": "Đây là ước tính sàng lọc dựa trên các quy tắc kinh nghiệm đã công bố, không phải thử nghiệm hầm gió hay mô phỏng chất lưu đầy đủ. Nó giúp nhận ra con phố nào nhiều gió hơn con phố khác với cùng một luồng gió, nhưng không cho biết chính xác tốc độ gió — vì vậy ứng dụng dùng các từ lặng gió, gió nhẹ, nhiều gió thay vì con số.",
     "windLimitAirport": "Sân bay Logan nằm cạnh mặt nước thoáng nên gió ở đó mạnh hơn nhiều so với giữa các tòa nhà. Chúng tôi chỉ dùng nó để xác định hướng gió và tốc độ tham chiếu.",
     "windLimitUnmodelled": "Cây cối, mái hiên, vật dụng đường phố, mưa, hiệu ứng nhiệt độ và gió giật không được mô hình hóa. Các góc và luồng gió xuống của tòa nhà cao là phần kém chắc chắn nhất.",
-    "windLimitHeights": "{assumed} trong số {total} hình khối tòa nhà dùng cho gió (Phố Tàu cộng thêm vùng đệm 280 m) không có chiều cao được ghi nhận. Khác với bóng mát, chúng tôi giả định 12 m cho các tòa này thay vì để trống, và đã kiểm tra rằng điều đó hầu như không làm thay đổi thứ tự phố nào nhiều gió hơn.",
+    "windLimitHeights": "{assumed} trong số {total} hình khối tòa nhà dùng cho gió (toàn bộ khu vực bản đồ, gồm Phố Tàu, Downtown và Back Bay, cộng thêm vùng đệm 280 m) không có chiều cao được ghi nhận. Khác với bóng mát, chúng tôi giả định 12 m cho các tòa này thay vì để trống, và đã kiểm tra rằng điều đó hầu như không làm thay đổi thứ tự phố nào nhiều gió hơn.",
     "windLimitUnvalidated": "Ước tính gió chưa được đối chiếu với số đo thực tế trên các con phố này. Nhóm thực địa dự định đo bằng máy đo gió cầm tay để kiểm tra. Cho đến lúc đó, hãy coi đây là hướng dẫn, không phải sự thật.",
     "sourceWind": "Số liệu quan trắc gió"
   },

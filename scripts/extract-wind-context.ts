@@ -18,7 +18,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 import { COORD_PRECISION } from "../src/lib/geojson-precision";
 
 const BUILDINGS_URL =
@@ -36,7 +36,7 @@ const round = (n: number) => {
 };
 
 async function main() {
-  const { west, south, east, north } = CHINATOWN_BBOX;
+  const { west, south, east, north } = STUDY_AREA_BBOX;
   const geometry = [west - PAD_LNG, south - PAD_LAT, east + PAD_LNG, north + PAD_LAT].join(",");
 
   const raw: Feature[] = [];
@@ -99,7 +99,7 @@ async function main() {
         source: "City of Boston Buildings (BPDA), BLDG_HGT_2010",
         purpose: "Wind-model context: padded footprints so boundary streets are not read as open ground.",
         extracted_at: new Date().toISOString(),
-        bbox: CHINATOWN_BBOX,
+        bbox: STUDY_AREA_BBOX,
         pad_metres: 280,
       },
     }),

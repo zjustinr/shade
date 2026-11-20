@@ -11,7 +11,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 import { COORD_PRECISION } from "../src/lib/geojson-precision";
 import type { Destination, DestinationCategory } from "../src/lib/destinations";
 
@@ -119,8 +119,11 @@ function firstString(
   props: Record<string, unknown>,
   fields: string[],
 ): string | null {
+  // The City services have changed field-name casing between releases
+  // ("BRANCH" became "branch"); match without regard to case.
+  const lower = new Map(Object.entries(props).map(([k, v]) => [k.toLowerCase(), v]));
   for (const field of fields) {
-    const value = props[field];
+    const value = lower.get(field.toLowerCase());
     if (typeof value === "string" && value.trim() !== "") return value.trim();
     if (typeof value === "number") return String(value);
   }
@@ -141,25 +144,34 @@ function tidy(value: string): string {
 }
 
 async function fetchSource(source: Source) {
-  const { west, south, east, north } = CHINATOWN_BBOX;
-  const params = new URLSearchParams({
-    where: "1=1",
-    geometry: `${west - PAD},${south - PAD},${east + PAD},${north + PAD}`,
-    geometryType: "esriGeometryEnvelope",
-    inSR: "4326",
-    outSR: "4326",
-    spatialRel: "esriSpatialRelIntersects",
-    outFields: "*",
-    f: "geojson",
-  });
-
-  const res = await fetch(`${source.url}?${params}`);
-  if (!res.ok) throw new Error(`${source.label} responded ${res.status}`);
-  const data = (await res.json()) as FeatureCollection & {
-    error?: { message: string };
-  };
-  if (data.error) throw new Error(`${source.label}: ${data.error.message}`);
-  return data.features ?? [];
+  const { west, south, east, north } = STUDY_AREA_BBOX;
+  const PAGE = 1000;
+  const out: Feature[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const params = new URLSearchParams({
+      where: "1=1",
+      geometry: `${west - PAD},${south - PAD},${east + PAD},${north + PAD}`,
+      geometryType: "esriGeometryEnvelope",
+      inSR: "4326",
+      outSR: "4326",
+      spatialRel: "esriSpatialRelIntersects",
+      outFields: "*",
+      f: "geojson",
+      resultOffset: String(offset),
+      resultRecordCount: String(PAGE),
+    });
+    const res = await fetch(`${source.url}?${params}`);
+    if (!res.ok) throw new Error(`${source.label} responded ${res.status}`);
+    const data = (await res.json()) as FeatureCollection & {
+      exceededTransferLimit?: boolean;
+      error?: { message: string };
+    };
+    if (data.error) throw new Error(`${source.label}: ${data.error.message}`);
+    const batch = data.features ?? [];
+    out.push(...batch);
+    if (batch.length === 0 || (!data.exceededTransferLimit && batch.length < PAGE)) break;
+  }
+  return out;
 }
 
 async function main() {
@@ -226,7 +238,7 @@ async function main() {
     metadata: {
       source: "City of Boston Open Data",
       extracted_at: new Date().toISOString(),
-      bbox: CHINATOWN_BBOX,
+      bbox: STUDY_AREA_BBOX,
       pad_degrees: PAD,
       note:
         "Everyday walking destinations, so the route planner can show which way there is shaded. NOT a cooling-resources directory — see SPEC §0 and src/lib/destinations.ts.",

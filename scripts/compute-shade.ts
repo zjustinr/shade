@@ -13,7 +13,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import * as turf from "@turf/turf";
 import type { Feature, FeatureCollection, Point, Polygon, MultiPolygon } from "geojson";
-import { CHINATOWN_CENTRE } from "../src/lib/chinatown";
+import { STUDY_AREA_CENTRE } from "../src/lib/chinatown";
 import { computeShade } from "../src/lib/shade";
 import { roundGeometry } from "../src/lib/geojson-precision";
 
@@ -129,7 +129,7 @@ async function main() {
         if (hour === END_HOUR && minute > 0) break;
 
         const instant = bostonWallClockToUtc(date, hour, minute);
-        const result = computeShade(inputs, instant, CHINATOWN_CENTRE);
+        const result = computeShade(inputs, instant, STUDY_AREA_CENTRE);
         // Only a daytime slot reports a meaningful skipped count; the
         // below-horizon early return never looks at the buildings.
         if (!result.belowHorizon) skippedBuildings = result.skippedBuildings;

@@ -129,7 +129,7 @@
     "windLimitScreening": "This is a screening estimate built from published rules of thumb, not a wind-tunnel test or a full fluid simulation. It is good at saying one street is likely windier than another for the same wind. It is not good at saying exactly how fast the wind blows, which is why the app uses the words calm, breezy and windy rather than speeds.",
     "windLimitAirport": "Logan Airport sits beside open water, so its winds are stronger than anything between buildings. We use it only to set the direction and a reference speed.",
     "windLimitUnmodelled": "Trees, awnings, street furniture, rain, temperature effects and gusts are not modelled. The corners and downdrafts of tall buildings are the most uncertain part.",
-    "windLimitHeights": "{assumed} of the {total} building footprints used for wind (Chinatown plus a 280 m margin) have no recorded height. Unlike for shade, we assume 12 m for these rather than leave gaps, and we checked that this barely changes which streets come out windier than others.",
+    "windLimitHeights": "{assumed} of the {total} building footprints used for wind (the whole mapped area, Chinatown, Downtown and Back Bay, plus a 280 m margin) have no recorded height. Unlike for shade, we assume 12 m for these rather than leave gaps, and we checked that this barely changes which streets come out windier than others.",
     "windLimitUnvalidated": "The wind estimate has not yet been checked against measurements on these streets. A handheld-anemometer pass by the field crew is the planned test. Until then, treat it as a guide, not a fact.",
     "sourceWind": "Wind observations"
   },

@@ -26,7 +26,7 @@ import {
   type Obstacle,
 } from "../src/lib/urban-geometry";
 import { ASSUMED_HEIGHT_M, windAtPoint } from "../src/lib/wind-model";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 
 const DATA = join(process.cwd(), "public", "data");
 
@@ -35,8 +35,8 @@ const DATA = join(process.cwd(), "public", "data");
 const SAMPLE_FRACTIONS = [0.25, 0.5, 0.75];
 
 const projection = makeProjection(
-  (CHINATOWN_BBOX.south + CHINATOWN_BBOX.north) / 2,
-  (CHINATOWN_BBOX.west + CHINATOWN_BBOX.east) / 2,
+  (STUDY_AREA_BBOX.south + STUDY_AREA_BBOX.north) / 2,
+  (STUDY_AREA_BBOX.west + STUDY_AREA_BBOX.east) / 2,
 );
 
 function loadObstacles(
@@ -218,10 +218,10 @@ async function main() {
     const nearBoundary = network.edges.map((edge) => {
       const [lng, lat] = network.nodes[edge.a].c;
       return (
-        lng < CHINATOWN_BBOX.west + inset ||
-        lng > CHINATOWN_BBOX.east - inset ||
-        lat < CHINATOWN_BBOX.south + inset ||
-        lat > CHINATOWN_BBOX.north - inset
+        lng < STUDY_AREA_BBOX.west + inset ||
+        lng > STUDY_AREA_BBOX.east - inset ||
+        lat < STUDY_AREA_BBOX.south + inset ||
+        lat > STUDY_AREA_BBOX.north - inset
       );
     });
     console.log("\nBoundary check (mean ratio, boundary edges vs interior edges)");
