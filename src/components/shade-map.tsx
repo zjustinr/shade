@@ -108,10 +108,13 @@ export function ShadeMap({
   index,
   readings: initialReadings,
   corners: initialCorners,
+  banner,
 }: {
   index: ShadeIndex;
   readings: PublicReading[];
   corners: PublicCorner[];
+  /** Rendered at the top of the side panel (the shade disclaimer). */
+  banner?: React.ReactNode;
 }) {
   const t = useTranslations("map");
   const tDest = useTranslations("destinations");
@@ -165,7 +168,9 @@ export function ShadeMap({
   const [dateKey, setDateKey] = useState(
     () => nearestShadeDate(new Date(), index).dateKey,
   );
-  const [planning, setPlanning] = useState(false);
+  // The planner is the main job of this page, so it is always open; the
+  // network it needs loads on first paint rather than on a button press.
+  const planning = true;
   const [start, setStart] = useState<RoutePoint | null>(null);
   const [end, setEnd] = useState<RoutePoint | null>(null);
   const [picking, setPicking] = useState<"start" | "end" | null>(null);
@@ -823,11 +828,14 @@ export function ShadeMap({
   const timeLabel = formatSlotLabel(slot.time, locale);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative">
+    // Desktop: map fills the viewport beside a fixed-width panel, like Google
+    // Maps, so choosing a start and end never needs a scroll. Narrow screens
+    // stack: map first, panel underneath.
+    <div className="flex flex-col lg:grid lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[minmax(340px,420px)_1fr]">
+      <div className="relative order-1 lg:order-2">
         <div
           ref={containerRef}
-          className="h-[60vh] min-h-[380px] w-full rounded-xl border border-neutral-200"
+          className="h-[60vh] min-h-[380px] w-full lg:h-full"
           role="application"
           aria-label={t("heading")}
         />
@@ -838,7 +846,54 @@ export function ShadeMap({
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="order-2 flex flex-col gap-4 overflow-y-auto px-4 py-4 lg:order-1 lg:border-r lg:border-accent-line">
+      {banner}
+
+      <RoutePlanner
+          start={start}
+          end={end}
+          picking={picking}
+          onPick={setPicking}
+          onSetPoint={(which, point) => {
+            if (which === "start") setStart(point);
+            else setEnd(point);
+          }}
+          onSwap={() => {
+            setStart(end);
+            setEnd(start);
+          }}
+          onClear={() => {
+            setStart(null);
+            setEnd(null);
+            setPicking(null);
+          }}
+          destinations={destinations}
+          routes={routes}
+          selectedRoute={activeRoute}
+          onSelectRoute={setSelectedRoute}
+          preference={preference}
+          onPreferenceChange={setPreference}
+          loading={routeDataLoading || (!!start && !!end && !exposure)}
+          timeLabel={timeLabel}
+          wind={
+            wind
+              ? ({
+                  available: true,
+                  pref: windPref,
+                  onPrefChange: setWindPref,
+                  dir: windDir,
+                  onDirChange: setWindDir,
+                  strength: windStrength,
+                  onStrengthChange: setWindStrength,
+                  sector: wind.sector,
+                  refMph: wind.refMph,
+                  usualSector: wind.usual.sector,
+                } satisfies WindControlsState)
+              : ({ available: false } satisfies WindControlsState)
+          }
+        />
+
+      <div className="grid gap-4 grid-cols-1">
         <label className="flex flex-col gap-1">
           <span className="flex items-center gap-2 font-semibold">
             <span>
@@ -953,66 +1008,6 @@ export function ShadeMap({
 
       <Legend showWind={visible.wind && !!wind} />
 
-      <div>
-        <button
-          type="button"
-          onClick={() => {
-            setPlanning((p) => !p);
-            setPicking(null);
-          }}
-          aria-expanded={planning}
-          className="min-h-[56px] w-full rounded-xl bg-accent px-6 text-lg font-semibold text-on-accent transition-colors hover:bg-accent-ink sm:w-auto"
-        >
-          {tRoute("title")}
-        </button>
-      </div>
-
-      {planning ? (
-        <RoutePlanner
-          start={start}
-          end={end}
-          picking={picking}
-          onPick={setPicking}
-          onSetPoint={(which, point) => {
-            if (which === "start") setStart(point);
-            else setEnd(point);
-          }}
-          onSwap={() => {
-            setStart(end);
-            setEnd(start);
-          }}
-          onClear={() => {
-            setStart(null);
-            setEnd(null);
-            setPicking(null);
-          }}
-          destinations={destinations}
-          routes={routes}
-          selectedRoute={activeRoute}
-          onSelectRoute={setSelectedRoute}
-          preference={preference}
-          onPreferenceChange={setPreference}
-          loading={routeDataLoading || (!!start && !!end && !exposure)}
-          timeLabel={timeLabel}
-          wind={
-            wind
-              ? ({
-                  available: true,
-                  pref: windPref,
-                  onPrefChange: setWindPref,
-                  dir: windDir,
-                  onDirChange: setWindDir,
-                  strength: windStrength,
-                  onStrengthChange: setWindStrength,
-                  sector: wind.sector,
-                  refMph: wind.refMph,
-                  usualSector: wind.usual.sector,
-                } satisfies WindControlsState)
-              : ({ available: false } satisfies WindControlsState)
-          }
-        />
-      ) : null}
-
       {selectedDestination ? (
         <aside className="rounded-xl border border-neutral-300 p-4">
           <div className="flex items-start justify-between gap-3">
@@ -1038,6 +1033,7 @@ export function ShadeMap({
       {selectedReading ? (
         <ReadingCard reading={selectedReading} onClose={() => setSelectedReading(null)} />
       ) : null}
+      </div>
     </div>
   );
 }

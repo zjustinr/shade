@@ -81,115 +81,64 @@ export function RoutePlanner({
   wind: WindControlsState;
 }) {
   const t = useTranslations("route");
-  const [query, setQuery] = useState("");
-  const [searchFor, setSearchFor] = useState<"start" | "end">("end");
-
-  /**
-   * Search is over the destinations already downloaded, on this device.
-   * No geocoding service is called: §10 forbids sending user data
-   * off-origin, and where somebody is walking from and to is exactly that.
-   */
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (q.length < 2) return [];
-    return destinations
-      .filter(
-        (d) =>
-          d.name.toLowerCase().includes(q) ||
-          (d.address ?? "").toLowerCase().includes(q),
-      )
-      .slice(0, 6);
-  }, [query, destinations]);
-
   return (
-    <section className="rounded-xl border border-neutral-300 p-4">
+    <section className="rounded-xl border border-neutral-300 p-4 lg:rounded-none lg:border-0 lg:p-0">
       <h2 className="text-xl font-semibold">{t("title")}</h2>
       <p className="mt-1 text-sm text-neutral-700">{t("intro")}</p>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        <PointButton
-          label={t("start")}
-          point={start}
-          active={picking === "start"}
-          activeHint={t("tapStart")}
-          setHint={t("setStart")}
-          onClick={() => onPick(picking === "start" ? null : "start")}
-          tone="start"
-        />
-        <PointButton
-          label={t("end")}
-          point={end}
-          active={picking === "end"}
-          activeHint={t("tapEnd")}
-          setHint={t("setEnd")}
-          onClick={() => onPick(picking === "end" ? null : "end")}
-          tone="end"
-        />
-      </div>
-
-      <div className="mt-2 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={onSwap}
-          disabled={!start || !end}
-          className="min-h-[44px] rounded-lg border border-neutral-300 px-4 text-sm font-medium disabled:opacity-40"
-        >
-          {t("swap")}
-        </button>
-        <button
-          type="button"
-          onClick={onClear}
-          disabled={!start && !end}
-          className="min-h-[44px] rounded-lg border border-neutral-300 px-4 text-sm font-medium disabled:opacity-40"
-        >
-          {t("clear")}
-        </button>
-      </div>
-
-      <div className="mt-4">
-        <label className="block text-sm font-semibold" htmlFor="place-search">
-          {t("search")}
-        </label>
-        <div className="mt-1 flex gap-2">
-          <select
-            aria-label={t("search")}
-            value={searchFor}
-            onChange={(e) => setSearchFor(e.target.value as "start" | "end")}
-            className="h-11 rounded-lg border border-neutral-300 px-2 text-sm"
-          >
-            <option value="start">{t("start")}</option>
-            <option value="end">{t("end")}</option>
-          </select>
-          <input
-            id="place-search"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="h-11 w-full rounded-lg border border-neutral-300 px-3"
-            autoComplete="off"
+      {/* Google-Maps style: two stacked fields you can type into, with the
+          swap control beside them. Typing searches the places already on this
+          device; the pin button lets the person click the map instead. Both
+          paths fill the same field, so nothing needs scrolling. */}
+      <div className="mt-3 flex items-stretch gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <PlaceField
+            label={t("start")}
+            placeholder={t("startPlaceholder")}
+            pinLabel={t("pickOnMap")}
+            point={start}
+            picking={picking === "start"}
+            pickingHint={t("tapStart")}
+            tone="start"
+            destinations={destinations}
+            onPick={() => onPick(picking === "start" ? null : "start")}
+            onChoose={(p) => onSetPoint("start", p)}
+          />
+          <PlaceField
+            label={t("end")}
+            placeholder={t("endPlaceholder")}
+            pinLabel={t("pickOnMap")}
+            point={end}
+            picking={picking === "end"}
+            pickingHint={t("tapEnd")}
+            tone="end"
+            destinations={destinations}
+            onPick={() => onPick(picking === "end" ? null : "end")}
+            onChoose={(p) => onSetPoint("end", p)}
           />
         </div>
-        {matches.length > 0 ? (
-          <ul className="mt-1 flex flex-col gap-1">
-            {matches.map((d) => (
-              <li key={d.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSetPoint(searchFor, { lng: d.lng, lat: d.lat, label: d.name });
-                    setQuery("");
-                  }}
-                  className="flex min-h-[44px] w-full flex-col items-start rounded-lg border border-neutral-200 px-3 py-1 text-left hover:bg-neutral-50"
-                >
-                  <span className="font-medium">{d.name}</span>
-                  {d.address ? (
-                    <span className="text-xs text-neutral-600">{d.address}</span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <div className="flex flex-col justify-center gap-2">
+          <button
+            type="button"
+            onClick={onSwap}
+            disabled={!start || !end}
+            aria-label={t("swap")}
+            title={t("swap")}
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-neutral-300 text-lg disabled:opacity-40"
+          >
+            <span aria-hidden>⇅</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={!start && !end}
+            aria-label={t("clear")}
+            title={t("clear")}
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-neutral-300 text-lg disabled:opacity-40"
+          >
+            <span aria-hidden>✕</span>
+          </button>
+        </div>
       </div>
 
       <fieldset className="mt-4">
@@ -450,48 +399,109 @@ function Tag({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PointButton({
+function PlaceField({
   label,
+  placeholder,
+  pinLabel,
   point,
-  active,
-  activeHint,
-  setHint,
-  onClick,
+  picking,
+  pickingHint,
   tone,
+  destinations,
+  onPick,
+  onChoose,
 }: {
   label: string;
+  placeholder: string;
+  pinLabel: string;
   point: RoutePoint | null;
-  active: boolean;
-  activeHint: string;
-  setHint: string;
-  onClick: () => void;
+  picking: boolean;
+  pickingHint: string;
   tone: "start" | "end";
+  destinations: Destination[];
+  onPick: () => void;
+  onChoose: (p: RoutePoint) => void;
 }) {
+  // `null` means "not typing": show the chosen point's label instead.
+  const [typed, setTyped] = useState<string | null>(null);
+  const value = typed ?? point?.label ?? "";
+
+  /**
+   * Search is over the destinations already downloaded, on this device.
+   * No geocoding service is called: §10 forbids sending user data
+   * off-origin, and where somebody is walking from and to is exactly that.
+   */
+  const matches = useMemo(() => {
+    const q = (typed ?? "").trim().toLowerCase();
+    if (q.length < 2) return [];
+    return destinations
+      .filter(
+        (d) =>
+          d.name.toLowerCase().includes(q) ||
+          (d.address ?? "").toLowerCase().includes(q),
+      )
+      .slice(0, 6);
+  }, [typed, destinations]);
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`flex min-h-[56px] flex-col items-start rounded-lg border-2 px-3 py-2 text-left ${
-        active
-          ? "border-accent bg-accent-soft"
-          : point
-            ? "border-neutral-400"
-            : "border-dashed border-neutral-400"
-      }`}
-    >
-      <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-neutral-600">
+    <div className="relative">
+      <div
+        className={`flex items-center gap-2 rounded-lg border-2 pl-3 ${
+          picking ? "border-accent bg-accent-soft" : "border-neutral-300"
+        }`}
+      >
         <span
           aria-hidden
-          className={`inline-block h-3 w-3 rounded-full ${
+          className={`inline-block h-3 w-3 shrink-0 rounded-full ${
             tone === "start" ? "bg-green-600" : "bg-red-600"
           }`}
         />
-        {label}
-      </span>
-      <span className="text-sm">
-        {active ? activeHint : (point?.label ?? setHint)}
-      </span>
-    </button>
+        <input
+          type="search"
+          aria-label={label}
+          value={picking ? "" : value}
+          placeholder={picking ? pickingHint : placeholder}
+          onChange={(e) => setTyped(e.target.value)}
+          onFocus={(e) => e.target.select()}
+          onBlur={() => setTimeout(() => setTyped(null), 150)}
+          autoComplete="off"
+          className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none"
+        />
+        <button
+          type="button"
+          onClick={onPick}
+          aria-pressed={picking}
+          aria-label={pinLabel}
+          title={pinLabel}
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center text-lg"
+        >
+          <span aria-hidden>📍</span>
+        </button>
+      </div>
+      {matches.length > 0 ? (
+        <ul className="absolute inset-x-0 top-full z-20 mt-1 flex flex-col overflow-hidden rounded-lg border border-neutral-300 bg-paper shadow-lg">
+          {matches.map((d) => (
+            <li key={d.id}>
+              <button
+                type="button"
+                // mousedown fires before the input's blur, so the choice
+                // lands before the list is torn down.
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onChoose({ lng: d.lng, lat: d.lat, label: d.name });
+                  setTyped(null);
+                }}
+                className="flex min-h-[44px] w-full flex-col items-start px-3 py-1 text-left hover:bg-neutral-50"
+              >
+                <span className="text-sm font-medium">{d.name}</span>
+                {d.address ? (
+                  <span className="text-xs text-neutral-600">{d.address}</span>
+                ) : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }

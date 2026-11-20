@@ -52,18 +52,21 @@ export default async function MapPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
-      <h1 className="text-3xl font-bold">{t("heading")}</h1>
+    <div>
+      <h1 className="sr-only">{t("heading")}</h1>
 
-      {/* §6/§13: permanently visible, above the map, in all three languages. */}
-      <div className="mt-4">
-        <ShadeDisclaimer />
-      </div>
+      {/* The map takes the whole width and (on desktop) the whole viewport
+          height, with the route panel on its left. §6/§13: the disclaimer
+          stays permanently visible, now at the top of that panel, in all
+          three languages. */}
+      <ShadeMap
+        index={index}
+        readings={readings}
+        corners={corners}
+        banner={<ShadeDisclaimer compact />}
+      />
 
-      <div className="mt-4">
-        <ShadeMap index={index} readings={readings} corners={corners} />
-      </div>
-
+      <div className="mx-auto max-w-5xl px-4 pb-6">
       <div className="mt-6">
         <CityCoolingLink />
       </div>
@@ -89,6 +92,7 @@ export default async function MapPage({
       {/* §10 Accessibility: the map must have a non-map fallback — a text
           list of sites with their readings. */}
       <ReadingsTextFallback readings={readings} />
+      </div>
     </div>
   );
 }
