@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShadeDisclaimer } from "@/components/shade-disclaimer";
 import { CityCoolingLink } from "@/components/city-cooling-link";
 import type { ShadeIndex } from "@/lib/shade-index";
-import { CHINATOWN_BBOX } from "@/lib/chinatown";
+import { STUDY_AREA_BBOX } from "@/lib/chinatown";
 import {
   CROWN_ALLOMETRY_NOTE,
   DEFAULT_CROWN_RADIUS_M,
@@ -67,8 +67,8 @@ export default async function AboutPage({
           <Stat label="Dates precomputed" value={String(index.dates.length)} />
         </dl>
         <p className="mt-3 text-sm text-neutral-600">
-          Bounding box {CHINATOWN_BBOX.west}, {CHINATOWN_BBOX.south} to {CHINATOWN_BBOX.east},{" "}
-          {CHINATOWN_BBOX.north}. Shade last computed{" "}
+          Bounding box {STUDY_AREA_BBOX.west}, {STUDY_AREA_BBOX.south} to {STUDY_AREA_BBOX.east},{" "}
+          {STUDY_AREA_BBOX.north}. Shade last computed{" "}
           {new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
             new Date(index.generatedAt),
           )}

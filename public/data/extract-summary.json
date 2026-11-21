@@ -1,17 +1,17 @@
 {
-  "extracted_at": "2026-08-24T13:23:59.307Z",
+  "extracted_at": "2026-11-21T16:16:39.712Z",
   "bbox": {
-    "west": -71.066,
-    "south": 42.348,
-    "east": -71.055,
-    "north": 42.355
+    "west": -71.0885,
+    "south": 42.3335,
+    "east": -71.0505,
+    "north": 42.3615
   },
   "trees": {
-    "count": 433,
-    "withDbh": 415
+    "count": 10444,
+    "withDbh": 10103
   },
   "buildings": {
-    "count": 670,
-    "skippedNoHeight": 79
+    "count": 11169,
+    "skippedNoHeight": 952
   }
 }

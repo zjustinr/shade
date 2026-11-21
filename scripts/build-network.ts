@@ -1,5 +1,5 @@
 /**
- * Builds the routable pedestrian network for the Chinatown bbox.
+ * Builds the routable pedestrian network for the study-area bbox.
  *
  * Source is Boston's Sidewalk Centerline layer, which is a genuine
  * pedestrian network — sidewalk centrelines plus the crosswalks that
@@ -16,7 +16,7 @@
 import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Feature, FeatureCollection, LineString } from "geojson";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 import { metresBetween, type WalkNetwork } from "../src/lib/network";
 import { COORD_PRECISION } from "../src/lib/geojson-precision";
 
@@ -24,8 +24,10 @@ const OUT_DIR = join(process.cwd(), "public", "data");
 
 const SIDEWALKS_URL =
   "https://gisportal.boston.gov/arcgis/rest/services/Infrastructure/OpenData/MapServer/5/query";
+// The OpenData MapServer dropped its street layer (was layer 8). The City's
+// ArcGIS Online "Street_Centerlines" carries the same names (MassDOT roads).
 const STREETS_URL =
-  "https://gisportal.boston.gov/arcgis/rest/services/Infrastructure/OpenData/MapServer/8/query";
+  "https://services.arcgis.com/sFnw0xNflSi8J0uh/arcgis/rest/services/Street_Centerlines/FeatureServer/0/query";
 
 /**
  * Which pedestrian ways to include.
@@ -49,7 +51,7 @@ const NAME_MATCH_METRES = 30;
 type Coord = [number, number];
 
 function bboxParams(pad = 0) {
-  const { west, south, east, north } = CHINATOWN_BBOX;
+  const { west, south, east, north } = STUDY_AREA_BBOX;
   return new URLSearchParams({
     where: "1=1",
     geometry: `${west - pad},${south - pad},${east + pad},${north + pad}`,
@@ -61,20 +63,37 @@ function bboxParams(pad = 0) {
   });
 }
 
-async function fetchLines(url: string, outFields: string, pad = 0) {
-  const params = bboxParams(pad);
-  params.set("outFields", outFields);
-  const res = await fetch(`${url}?${params}`);
-  if (!res.ok) throw new Error(`${url} responded ${res.status}`);
-  const data = (await res.json()) as FeatureCollection & {
-    exceededTransferLimit?: boolean;
-  };
-  if (data.exceededTransferLimit) {
-    throw new Error(`${url} hit the transfer limit — add paging before trusting this.`);
+async function fetchLines(url: string, outFields: string, orderBy: string, pad = 0) {
+  const PAGE = 1000;
+  const all: Feature<LineString>[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const params = bboxParams(pad);
+    params.set("outFields", outFields);
+    params.set("resultOffset", String(offset));
+    params.set("resultRecordCount", String(PAGE));
+    // Stable order, or paging can repeat or skip rows.
+    params.set("orderByFields", orderBy);
+    const res = await fetch(`${url}?${params}`);
+    if (!res.ok) throw new Error(`${url} responded ${res.status}`);
+    const data = (await res.json()) as FeatureCollection & {
+      exceededTransferLimit?: boolean;
+      error?: { message: string };
+    };
+    if (data.error) throw new Error(`${url}: ${data.error.message}`);
+    const batch = data.features ?? [];
+    all.push(...(batch as Feature<LineString>[]));
+    if (batch.length === 0 || (!data.exceededTransferLimit && batch.length < PAGE)) break;
   }
-  return (data.features ?? []).filter(
-    (f): f is Feature<LineString> => f.geometry?.type === "LineString",
-  );
+  return all.filter((f) => f.geometry?.type === "LineString");
+}
+
+/** The City services changed field-name casing between releases. */
+function lowerKeys(props: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(props).map(([k, v]) => [k.toLowerCase(), v]));
+}
+
+function titleCase(name: string): string {
+  return name.toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase());
 }
 
 function round(n: number) {
@@ -115,22 +134,19 @@ class NodeIndex {
 }
 
 async function main() {
-  console.log("Fetching Boston sidewalk centrelines for the Chinatown bbox…");
-  const sidewalks = await fetchLines(SIDEWALKS_URL, "OBJECTID,TYPE");
+  console.log("Fetching Boston sidewalk centrelines for the study-area bbox…");
+  const sidewalks = await fetchLines(SIDEWALKS_URL, "OBJECTID,TYPE", "OBJECTID");
   console.log(`  ${sidewalks.length} pedestrian ways`);
 
   console.log("Fetching street centrelines (for street names)…");
-  const streets = await fetchLines(STREETS_URL, "ST_NAME,ST_TYPE,PRE_DIR,SUF_DIR");
+  const streets = await fetchLines(STREETS_URL, "StreetName", "FID");
   console.log(`  ${streets.length} street segments`);
 
   // Street name lookup: midpoint of each street segment plus its name.
   const namedPoints: Array<{ c: Coord; name: string }> = [];
   for (const street of streets) {
-    const p = street.properties ?? {};
-    const name = [p.PRE_DIR, p.ST_NAME, p.ST_TYPE, p.SUF_DIR]
-      .filter((part) => part != null && String(part).trim() !== "")
-      .join(" ")
-      .trim();
+    const p = lowerKeys(street.properties ?? {});
+    const name = titleCase(String(p.streetname ?? "").trim());
     if (!name) continue;
     for (const c of street.geometry.coordinates as Coord[]) {
       namedPoints.push({ c, name });
@@ -159,7 +175,7 @@ async function main() {
   let skippedShort = 0;
 
   for (const way of sidewalks) {
-    const type = String(way.properties?.TYPE ?? "");
+    const type = String(lowerKeys(way.properties ?? {}).type ?? "");
     if (!INCLUDED_TYPES.has(type)) continue;
 
     const coords = (way.geometry.coordinates as Coord[]).map(

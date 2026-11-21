@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { metresBetween, nearestNode, type WalkNetwork } from "../src/lib/network";
 import { planRoutes } from "../src/lib/routing";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -87,7 +87,7 @@ console.log("\nConnectivity");
 
 console.log("\nCoverage of the Chinatown bbox");
 {
-  const { west, south, east, north } = CHINATOWN_BBOX;
+  const { west, south, east, north } = STUDY_AREA_BBOX;
   const inside = network.nodes.filter(
     (n) => n.c[0] >= west && n.c[0] <= east && n.c[1] >= south && n.c[1] <= north,
   );

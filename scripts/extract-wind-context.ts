@@ -18,7 +18,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 import { COORD_PRECISION } from "../src/lib/geojson-precision";
 
 const BUILDINGS_URL =
@@ -36,7 +36,7 @@ const round = (n: number) => {
 };
 
 async function main() {
-  const { west, south, east, north } = CHINATOWN_BBOX;
+  const { west, south, east, north } = STUDY_AREA_BBOX;
   const geometry = [west - PAD_LNG, south - PAD_LAT, east + PAD_LNG, north + PAD_LAT].join(",");
 
   const raw: Feature[] = [];
@@ -50,16 +50,20 @@ async function main() {
       spatialRel: "esriSpatialRelIntersects",
       outSR: "4326",
       f: "geojson",
+      orderByFields: "OBJECTID",
       resultOffset: String(offset),
       resultRecordCount: String(PAGE_SIZE),
     });
     const res = await fetch(`${BUILDINGS_URL}?${params}`);
     if (!res.ok) throw new Error(`${BUILDINGS_URL} responded ${res.status}`);
-    const page = (await res.json()) as { features?: Feature[]; error?: { message: string } };
+    const page = (await res.json()) as { features?: Feature[]; exceededTransferLimit?: boolean; error?: { message: string } };
     if (page.error) throw new Error(page.error.message);
     const batch = page.features ?? [];
     raw.push(...batch);
-    if (batch.length < PAGE_SIZE) break;
+    // A page can come back short when rows with no usable geometry are
+    // dropped, so a short page does not mean the last page. Stop only on
+    // an empty page or when the server says nothing more is waiting.
+    if (batch.length === 0 || (!page.exceededTransferLimit && batch.length < PAGE_SIZE)) break;
   }
 
   // One feature per polygon: a MultiPolygon becomes several obstacles.
@@ -99,7 +103,7 @@ async function main() {
         source: "City of Boston Buildings (BPDA), BLDG_HGT_2010",
         purpose: "Wind-model context: padded footprints so boundary streets are not read as open ground.",
         extracted_at: new Date().toISOString(),
-        bbox: CHINATOWN_BBOX,
+        bbox: STUDY_AREA_BBOX,
         pad_metres: 280,
       },
     }),

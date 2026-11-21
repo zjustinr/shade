@@ -10,7 +10,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Feature, FeatureCollection, Point, Polygon, MultiPolygon } from "geojson";
-import { CHINATOWN_BBOX } from "../src/lib/chinatown";
+import { STUDY_AREA_BBOX } from "../src/lib/chinatown";
 import { crownRadiusM, parseDbhInches, treeHeightM } from "../src/lib/tree-allometry";
 import { roundGeometry } from "../src/lib/geojson-precision";
 
@@ -35,7 +35,7 @@ const PAGE_SIZE = 2000;
 type WithMetadata<T> = T & { metadata: Record<string, unknown> };
 
 function bboxParams() {
-  const { west, south, east, north } = CHINATOWN_BBOX;
+  const { west, south, east, north } = STUDY_AREA_BBOX;
   return {
     geometry: `${west},${south},${east},${north}`,
     geometryType: "esriGeometryEnvelope",
@@ -58,6 +58,7 @@ async function fetchAllPages(
       where: "1=1",
       outFields,
       ...bboxParams(),
+      orderByFields: "OBJECTID",
       resultOffset: String(offset),
       resultRecordCount: String(PAGE_SIZE),
     });
@@ -66,12 +67,15 @@ async function fetchAllPages(
     if (!res.ok) {
       throw new Error(`${baseUrl} responded ${res.status} ${res.statusText}`);
     }
-    const page = (await res.json()) as FeatureCollection & { error?: { message: string } };
+    const page = (await res.json()) as FeatureCollection & { exceededTransferLimit?: boolean; error?: { message: string } };
     if (page.error) throw new Error(`ArcGIS error: ${page.error.message}`);
 
     const batch = page.features ?? [];
     features.push(...batch);
-    if (batch.length < PAGE_SIZE) break;
+    // A page can come back short when rows with no usable geometry are
+    // dropped, so a short page does not mean the last page. Stop only on
+    // an empty page or when the server says nothing more is waiting.
+    if (batch.length === 0 || (!page.exceededTransferLimit && batch.length < PAGE_SIZE)) break;
     offset += PAGE_SIZE;
   }
 
@@ -112,7 +116,7 @@ async function extractTrees() {
       source: "City of Boston Open Data — BPRD Trees",
       source_url: "https://data.boston.gov/dataset/bprd-trees",
       extracted_at: new Date().toISOString(),
-      bbox: CHINATOWN_BBOX,
+      bbox: STUDY_AREA_BBOX,
       count: features.length,
       with_measured_dbh: withDbh,
       note:
@@ -167,7 +171,7 @@ async function extractBuildings() {
       source: "City of Boston Open Data — Boston Buildings with Roof Breaks (BPDA)",
       source_url: "https://data.boston.gov/dataset/boston-buildings-with-roof-breaks",
       extracted_at: new Date().toISOString(),
-      bbox: CHINATOWN_BBOX,
+      bbox: STUDY_AREA_BBOX,
       count: features.length,
       skipped_no_height: skippedNoHeight,
       note:
@@ -190,7 +194,7 @@ async function main() {
     JSON.stringify(
       {
         extracted_at: new Date().toISOString(),
-        bbox: CHINATOWN_BBOX,
+        bbox: STUDY_AREA_BBOX,
         trees,
         buildings,
       },
