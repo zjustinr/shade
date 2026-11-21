@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-20T22:29:31.468Z",
+  "generatedAt": "2026-11-21T17:27:04.595Z",
   "stepMinutes": 30,
   "startHour": 6,
   "endHour": 20,
   "timezone": "America/New_York",
-  "buildingsTotal": 6037,
-  "buildingsSkippedNoHeight": 636,
-  "treesTotal": 5711,
+  "buildingsTotal": 11169,
+  "buildingsSkippedNoHeight": 952,
+  "treesTotal": 10444,
   "dates": [
     {
       "dateKey": "spring-equinox",
@@ -90,7 +90,7 @@
         {
           "time": "13:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 46.75
+          "sunAltitudeDeg": 46.76
         },
         {
           "time": "14:00",
@@ -100,7 +100,7 @@
         {
           "time": "14:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 42.22
+          "sunAltitudeDeg": 42.23
         },
         {
           "time": "15:00",
@@ -120,7 +120,7 @@
         {
           "time": "16:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 25.4
+          "sunAltitudeDeg": 25.41
         },
         {
           "time": "17:00",
@@ -166,7 +166,7 @@
         {
           "time": "06:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 7.74
+          "sunAltitudeDeg": 7.73
         },
         {
           "time": "06:30",
@@ -186,7 +186,7 @@
         {
           "time": "08:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 28.91
+          "sunAltitudeDeg": 28.9
         },
         {
           "time": "08:30",
@@ -236,17 +236,17 @@
         {
           "time": "13:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 70.87
+          "sunAltitudeDeg": 70.88
         },
         {
           "time": "13:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 69.01
+          "sunAltitudeDeg": 69.02
         },
         {
           "time": "14:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 65.66
+          "sunAltitudeDeg": 65.67
         },
         {
           "time": "14:30",
@@ -291,7 +291,7 @@
         {
           "time": "18:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 18.46
+          "sunAltitudeDeg": 18.45
         },
         {
           "time": "19:00",
@@ -301,7 +301,7 @@
         {
           "time": "19:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 8.11
+          "sunAltitudeDeg": 8.1
         },
         {
           "time": "20:00",
@@ -347,7 +347,7 @@
         {
           "time": "09:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 25.57
+          "sunAltitudeDeg": 25.58
         },
         {
           "time": "09:30",
@@ -377,22 +377,22 @@
         {
           "time": "12:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 46.7
+          "sunAltitudeDeg": 46.71
         },
         {
           "time": "12:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 47.46
+          "sunAltitudeDeg": 47.47
         },
         {
           "time": "13:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 47.16
+          "sunAltitudeDeg": 47.17
         },
         {
           "time": "13:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 45.81
+          "sunAltitudeDeg": 45.82
         },
         {
           "time": "14:00",
@@ -402,7 +402,7 @@
         {
           "time": "14:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 40.41
+          "sunAltitudeDeg": 40.42
         },
         {
           "time": "15:00",
@@ -417,7 +417,7 @@
         {
           "time": "16:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 27.67
+          "sunAltitudeDeg": 27.68
         },
         {
           "time": "16:30",
@@ -483,7 +483,7 @@
         {
           "time": "07:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 2.51
+          "sunAltitudeDeg": 2.52
         },
         {
           "time": "08:00",
@@ -493,7 +493,7 @@
         {
           "time": "08:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 10.75
+          "sunAltitudeDeg": 10.76
         },
         {
           "time": "09:00",
@@ -503,12 +503,12 @@
         {
           "time": "09:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 17.52
+          "sunAltitudeDeg": 17.53
         },
         {
           "time": "10:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 20.14
+          "sunAltitudeDeg": 20.15
         },
         {
           "time": "10:30",
@@ -528,27 +528,27 @@
         {
           "time": "12:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 24.12
+          "sunAltitudeDeg": 24.13
         },
         {
           "time": "12:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 23.33
+          "sunAltitudeDeg": 23.34
         },
         {
           "time": "13:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 21.85
+          "sunAltitudeDeg": 21.86
         },
         {
           "time": "13:30",
           "belowHorizon": false,
-          "sunAltitudeDeg": 19.72
+          "sunAltitudeDeg": 19.73
         },
         {
           "time": "14:00",
           "belowHorizon": false,
-          "sunAltitudeDeg": 17
+          "sunAltitudeDeg": 17.01
         },
         {
           "time": "14:30",
@@ -573,7 +573,7 @@
         {
           "time": "16:30",
           "belowHorizon": true,
-          "sunAltitudeDeg": -2.8
+          "sunAltitudeDeg": -2.79
         },
         {
           "time": "17:00",
@@ -588,7 +588,7 @@
         {
           "time": "18:00",
           "belowHorizon": true,
-          "sunAltitudeDeg": -18.17
+          "sunAltitudeDeg": -18.16
         },
         {
           "time": "18:30",
@@ -608,7 +608,7 @@
         {
           "time": "20:00",
           "belowHorizon": true,
-          "sunAltitudeDeg": -40.11
+          "sunAltitudeDeg": -40.12
         }
       ]
     }

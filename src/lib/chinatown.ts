@@ -21,12 +21,13 @@ export const CHINATOWN_BBOX_ARRAY: [number, number, number, number] = [
 /**
  * The area the shade, network, wind and destination data now cover: Back Bay
  * (west to Massachusetts Ave), Downtown and the Financial District (east to the
- * waterfront), with Chinatown in the middle. About 5.5x Chinatown's own box.
+ * waterfront), and the South End and Ink Block (south to Melnea Cass Blvd),
+ * with Chinatown in the middle. About 9.5x Chinatown's own box.
  * CHINATOWN_BBOX stays as the field-campaign area and the print-sheet extent.
  */
 export const STUDY_AREA_BBOX = {
   west: -71.0885,
-  south: 42.3455,
+  south: 42.3335,
   east: -71.0505,
   north: 42.3615,
 } as const;

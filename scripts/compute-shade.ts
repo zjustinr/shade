@@ -9,7 +9,7 @@
  *
  * Run with: npm run build:shade  (after npm run extract:data)
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import * as turf from "@turf/turf";
 import type { Feature, FeatureCollection, Point, Polygon, MultiPolygon } from "geojson";
@@ -91,6 +91,47 @@ function compact(
   };
 }
 
+/**
+ * Dates are independent, so a rebuild can run one process per date:
+ *   SHADE_ONLY=<dateKey> npm run build:shade   (writes that date + a part file)
+ *   SHADE_MERGE=1 npm run build:shade          (assembles index.json from parts)
+ * With neither set it does everything in one process, as before.
+ */
+const ONLY = process.env.SHADE_ONLY;
+const MERGE = process.env.SHADE_MERGE === "1";
+
+type IndexDate = {
+  dateKey: string;
+  date: string;
+  slots: Array<{ time: string; belowHorizon: boolean; sunAltitudeDeg: number }>;
+};
+
+async function writeIndex(
+  dates: IndexDate[],
+  buildingsTotal: number,
+  treesTotal: number,
+  skippedBuildings: number,
+) {
+  await writeFile(
+    join(OUT_DIR, "index.json"),
+    JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        stepMinutes: STEP_MINUTES,
+        startHour: START_HOUR,
+        endHour: END_HOUR,
+        timezone: "America/New_York",
+        buildingsTotal,
+        buildingsSkippedNoHeight: skippedBuildings,
+        treesTotal,
+        dates,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
 async function main() {
   const buildings = JSON.parse(
     await readFile(join(DATA_DIR, "buildings.geojson"), "utf8"),
@@ -101,6 +142,22 @@ async function main() {
 
   await mkdir(OUT_DIR, { recursive: true });
 
+  if (MERGE) {
+    const parts = await Promise.all(
+      REPRESENTATIVE_DATES.map(async ({ key }) =>
+        JSON.parse(await readFile(join(OUT_DIR, `.part-${key}.json`), "utf8")) as {
+          entry: IndexDate;
+          skippedBuildings: number;
+        },
+      ),
+    );
+    const skipped = Math.max(...parts.map((p) => p.skippedBuildings));
+    await writeIndex(parts.map((p) => p.entry), buildings.features.length, trees.features.length, skipped);
+    await Promise.all(REPRESENTATIVE_DATES.map(({ key }) => rm(join(OUT_DIR, `.part-${key}.json`))));
+    console.log(`Merged index.json from ${parts.length} dates.`);
+    return;
+  }
+
   const inputs = {
     buildings,
     trees,
@@ -109,16 +166,13 @@ async function main() {
     treeHeightProperty: "height_m",
   };
 
-  const index: Array<{
-    dateKey: string;
-    date: string;
-    slots: Array<{ time: string; belowHorizon: boolean; sunAltitudeDeg: number }>;
-  }> = [];
+  const index: IndexDate[] = [];
 
   let skippedBuildings = 0;
   const startedAt = Date.now();
 
   for (const { key, date } of REPRESENTATIVE_DATES) {
+    if (ONLY && key !== ONLY) continue;
     const slots: Array<{ time: string; belowHorizon: boolean; sunAltitudeDeg: number }> = [];
     const dayDir = join(OUT_DIR, key);
     await mkdir(dayDir, { recursive: true });
@@ -167,24 +221,14 @@ async function main() {
     );
   }
 
-  await writeFile(
-    join(OUT_DIR, "index.json"),
-    JSON.stringify(
-      {
-        generatedAt: new Date().toISOString(),
-        stepMinutes: STEP_MINUTES,
-        startHour: START_HOUR,
-        endHour: END_HOUR,
-        timezone: "America/New_York",
-        buildingsTotal: buildings.features.length,
-        buildingsSkippedNoHeight: skippedBuildings,
-        treesTotal: trees.features.length,
-        dates: index,
-      },
-      null,
-      2,
-    ),
-  );
+  if (ONLY) {
+    await writeFile(
+      join(OUT_DIR, `.part-${ONLY}.json`),
+      JSON.stringify({ entry: index[0], skippedBuildings }),
+    );
+  } else {
+    await writeIndex(index, buildings.features.length, trees.features.length, skippedBuildings);
+  }
 
   console.log(
     `\nDone in ${((Date.now() - startedAt) / 1000).toFixed(1)}s. ` +
