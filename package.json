@@ -30,6 +30,7 @@
     "build:ios": "tsx scripts/build-ios.ts",
     "build:icons": "node scripts/build-icons.mjs",
     "build:wind-climate": "tsx scripts/build-wind-climate.ts",
+    "analyze:heatwatch": "tsx scripts/analyze-heatwatch.ts",
     "verify:theme": "tsx scripts/verify-theme.ts",
     "verify:wind": "tsx scripts/verify-wind.ts",
     "build:wind": "tsx scripts/build-wind.ts",

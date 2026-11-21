@@ -86,6 +86,7 @@ computation. The City APIs are never called at request time.
 | `npm run verify:network` | Assert the real graph: connected, covers the bbox, sane distances |
 | `npm run check:i18n` | Catalogs in sync + translation review status |
 | `npm run verify:theme` | Assert the public colour system: contrast ratios and colour-blind separation, read from `globals.css` |
+| `npm run analyze:heatwatch` | Compare the shade model with CAPA's 2019 street-level air temperatures in Chinatown (`research/heatwatch-2019/`) |
 | `npm run build:icons` | Re-render the favicon, PWA and App Store icons from `brand/logo-mark.svg` |
 | `npm run smoke:map` | Browser test: are shadows actually painted? |
 | `npm run smoke:offline` | Browser test: airplane-mode field capture |
